@@ -3,9 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DSA Tracker — Master Coding Patterns</title>
-  <meta name="description" content="A single-page, highly polished tracker for master coding interview patterns and questions with persistent local storage.">
+  <title>DSA Squad — Master Coding Patterns</title>
+  <meta name="description" content="A single-page, highly polished tracker for master coding interview patterns and questions with persistent storage.">
   
+  <!-- Favicon Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+  <link rel="shortcut icon" href="./favicon.ico">
+
   <!-- Styling -->
   <link rel="stylesheet" href="./style.css">
 </head>
@@ -26,10 +32,8 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-brand">
-          <div class="brand-logo-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-          </div>
-          <span class="brand-text">DSA Tracker</span>
+          <img src="https://raw.githubusercontent.com/Techy-prashant/images_workIITM/refs/heads/main/Form%20Headers%20(1).png" alt="DSA Squad Logo" class="brand-logo-img">
+          <span class="brand-text">DSA Squad</span>
         </div>
         <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Toggle Sidebar">
           <svg class="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -47,7 +51,9 @@
         <div class="menu-label">Management</div>
         <ul class="admin-menu">
           <li class="admin-item" id="admin-page-btn">
-            <span class="avatar-circle admin-avatar">👑</span>
+            <span class="avatar-circle admin-avatar">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>
+            </span>
             <span class="menu-text">Admin Dashboard</span>
           </li>
         </ul>
@@ -60,8 +66,8 @@
         <!-- Header Section -->
         <header>
           <div class="header-meta">
-            <h1 id="header-user-title">DSA Tracker</h1>
-            <p id="header-user-subtitle">Master coding interview patterns. Progress is saved automatically to Supabase.</p>
+            <h1 id="header-user-title">DSA Squad Tracker</h1>
+            <p id="header-user-subtitle">Master coding interview patterns. Progress is saved automatically.</p>
           </div>
           <div class="header-actions">
             <!-- Edit Status Badge / Lock Status -->
@@ -77,10 +83,6 @@
             <button class="btn" id="import-export-btn">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
               Sync / JSON
-            </button>
-            <button class="theme-toggle" id="theme-toggle-btn" aria-label="Toggle Theme">
-              <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-              <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
             </button>
           </div>
         </header>
@@ -162,8 +164,9 @@
           <!-- Milestones & Motivation Grid -->
           <section class="milestones-section glass-panel" id="milestones-panel" style="margin-bottom: 24px;">
             <div class="milestones-header">
-              <h3 class="section-title" style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <span>🏆 Achievements & Milestones</span>
+              <h3 class="section-title" style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+                <span>Achievements & Milestones</span>
               </h3>
             </div>
             <div class="milestones-grid" id="milestones-grid">
@@ -189,12 +192,13 @@
               </select>
               <select id="status-filter" class="select-filter">
                 <option value="">All Statuses</option>
-                <option value="COMPLETED">✅ Completed</option>
-                <option value="ATTEMPTED">⏳ Attempted</option>
-                <option value="MASTERED">⭐ Mastered</option>
-                <option value="NOT_STARTED">❌ Unsolved</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="ATTEMPTED">Attempted</option>
+                <option value="MASTERED">Mastered</option>
+                <option value="NOT_STARTED">Unsolved</option>
               </select>
-              <button id="clear-filters-btn" class="btn" style="padding: 11px 16px; font-weight: 700;">Reset Filters</button>
+              <button id="toggle-all-accordion-btn" class="btn" style="padding: 11px 16px; font-weight: 700;">Expand All</button>
+              <button id="clear-filters-btn" class="btn" style="padding: 11px 16px; font-weight: 700;">Reset</button>
             </div>
           </section>
 
@@ -225,14 +229,20 @@
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal">
       <div class="modal-header">
-        <h3 class="modal-title">Sync & Backup Progress</h3>
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+          Sync & Backup Progress
+        </h3>
         <button class="close-btn" id="close-modal-btn" aria-label="Close Modal">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
       <div class="modal-body">
-        <div class="alert alert-info" style="margin-bottom: 20px; padding: 12px 16px; border-radius: var(--radius-md); background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
-          <strong>☁️ Supabase Cloud Sync Active:</strong> Your progress is automatically saved to the cloud whenever you change anything. You can open this page on any device, profile, or incognito mode and it will load instantly!
+        <div class="alert alert-info" style="margin-bottom: 20px; padding: 12px 16px; border-radius: var(--radius-md); background: rgba(249, 171, 54, 0.08); border: 1px solid rgba(249, 171, 54, 0.2); font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; display: flex; gap: 10px; align-items: flex-start;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+          <div>
+            <strong style="color: var(--text-primary);">Cloud Sync Active:</strong> Your progress is automatically saved to the cloud whenever you change anything. You can open this page on any device or profile and it will load instantly!
+          </div>
         </div>
 
         <p class="modal-desc">
@@ -241,11 +251,11 @@
         <textarea id="json-textarea" class="text-area" placeholder='Paste your progress JSON here...' style="height: 150px;"></textarea>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-danger" id="reset-progress-btn" style="background: transparent; color: var(--hard-text); border-color: rgba(239, 68, 68, 0.2); font-weight: 700; margin-right: auto;">
+        <button class="btn btn-danger" id="reset-progress-btn" style="background: transparent; color: var(--hard-text); border-color: rgba(239, 68, 68, 0.25); font-weight: 700; margin-right: auto;">
           Reset Progress
         </button>
         <button class="btn" id="cancel-modal-btn" style="font-weight: 700;">Cancel</button>
-        <button class="btn" id="copy-json-btn" style="font-weight: 700; color: var(--primary); border-color: rgba(99, 102, 241, 0.25);">Copy JSON</button>
+        <button class="btn" id="copy-json-btn" style="font-weight: 700; color: var(--primary); border-color: rgba(249, 171, 54, 0.25);">Copy JSON</button>
         <button class="btn btn-primary" id="save-import-btn" style="font-weight: 700;">Import</button>
       </div>
     </div>
@@ -255,7 +265,10 @@
   <div class="modal-overlay" id="login-modal-overlay">
     <div class="modal login-modal" style="max-width: 400px;">
       <div class="modal-header">
-        <h3 class="modal-title" id="login-modal-title">Unlock Page</h3>
+        <h3 class="modal-title" id="login-modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          Unlock Page
+        </h3>
         <button class="close-btn" id="close-login-modal-btn" aria-label="Close Modal">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
@@ -266,12 +279,15 @@
         </p>
         <input type="password" id="login-password-input" class="text-area" placeholder="Enter password..." style="margin-top: 12px; height: 48px; font-size: 1rem; width: 100%;">
         <div id="login-error-msg" style="color: var(--hard-text); font-size: 0.85rem; margin-top: 8px; font-weight: 600; display: none;">
-          ❌ Incorrect password.
+          Incorrect password. Please try again.
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn" id="cancel-login-modal-btn" style="font-weight: 700;">Cancel</button>
-        <button class="btn btn-primary" id="submit-login-btn" style="font-weight: 700;">Unlock 🔓</button>
+        <button class="btn btn-primary" id="submit-login-btn" style="font-weight: 700; display: flex; align-items: center; gap: 6px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+          Unlock
+        </button>
       </div>
     </div>
   </div>
@@ -280,7 +296,13 @@
   <div class="modal-overlay" id="goal-modal-overlay">
     <div class="modal goal-modal" style="max-width: 400px;">
       <div class="modal-header">
-        <h3 class="modal-title">🎯 Set Today's Goal</h3>
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+          Set Today's Goal
+        </h3>
+        <button class="close-btn" id="close-goal-modal-btn" aria-label="Close Modal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
       <div class="modal-body">
         <p class="modal-desc" style="margin-bottom: 16px;">
@@ -303,7 +325,11 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-primary" id="save-goal-btn" style="width: 100%; font-weight: 700; height: 48px; font-size: 1rem;">Let's Begin! 🚀</button>
+        <button class="btn" id="cancel-goal-modal-btn" style="font-weight: 700;">Skip</button>
+        <button class="btn btn-primary" id="save-goal-btn" style="font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-3.05 11a22.35 22.35 0 0 1-3.95 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>
+          Let's Begin!
+        </button>
       </div>
     </div>
   </div>
