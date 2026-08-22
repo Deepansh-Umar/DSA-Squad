@@ -1,0 +1,16 @@
+# Vercel deployments
+.vercel/
+
+# Resume files
+*resume*
+*.tex
+*.pdf
+*.log
+*.aux
+*.out
+*.toc
+*.synctex.gz
+
+# System files
+.DS_Store
+Thumbs.db
