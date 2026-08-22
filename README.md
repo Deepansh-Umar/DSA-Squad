@@ -13,7 +13,7 @@
 
 We're just a group of friends who were highly motivated to dive deep into **LeetCode** and conquer Data Structures & Algorithms. But as we started grinding, we realized something was missing. Standard spreadsheets were boring, and existing platforms didn't give us that personalized squad feeling.
 
-We needed a **cool, dedicated platform** just for us—a place to mark our daily activity, track our problem-solving progress, maintain our streaks, and see who's dominating the leaderboard. 
+We needed a **cool, dedicated platform** just for us, a place to mark our daily activity, track our problem-solving progress, maintain our streaks, and see who's dominating the leaderboard. 
 
 So, we built **DSA Squad**. 
 
