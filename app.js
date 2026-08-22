@@ -35,7 +35,8 @@ const USERS = [
   'Prashant',
   'Garima',
   'Vivek',
-  'Vaibhav'
+  'Vaibhav',
+  'Renuka'
 ];
 
 // Preconfigured SHA-256 password hashes (default: lowercase name + "123")
@@ -48,7 +49,8 @@ const USER_PASSWORD_HASHES = {
   'Prashant': '433c70b884e08aa71fbd9d083425904ebbccd528bdd378444fe87bc8b1ecc8a8',
   'Garima': '438569b625b26b5cdaad37377af8268702cebeac68d239c1dd58f622f82322a2',
   'Vivek': '6e7c74d1860b2d9d957306330e85592437a5e5848641c2d7b53794470c4fea06',
-  'Vaibhav': '8448f3120b8e4ce66cd1330bb6afe0de74b7ac1716cdb31142fe9177c707621e'
+  'Vaibhav': '8448f3120b8e4ce66cd1330bb6afe0de74b7ac1716cdb31142fe9177c707621e',
+  'Renuka': '3343a678860be16eb56c68d8c3a40061e92d0ee60d48bcb50dbe1bd999f690ba'
 };
 
 // Initialize Application

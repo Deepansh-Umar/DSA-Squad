@@ -1,5 +1,91 @@
 const QUESTIONS_DATA = [
   {
+    "id": 0,
+    "name": "Basics & Foundations",
+    "problems": [
+      {
+        "id": 509,
+        "title": "Fibonacci Number",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/fibonacci-number/",
+        "completed": false,
+        "status": "NOT_STARTED"
+      },
+      {
+        "id": 9,
+        "title": "Palindrome Number",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/palindrome-number/",
+        "completed": false,
+        "status": "NOT_STARTED"
+      },
+      {
+        "id": 412,
+        "title": "Fizz Buzz",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/fizz-buzz/",
+        "completed": false,
+        "status": "NOT_STARTED"
+      },
+      {
+        "id": 344,
+        "title": "Reverse String",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/reverse-string/",
+        "completed": false,
+        "status": "NOT_STARTED"
+      },
+      {
+        "id": 204,
+        "title": "Count Primes",
+        "difficulty": "Medium",
+        "url": "https://leetcode.com/problems/count-primes/",
+        "completed": false,
+        "status": "NOT_STARTED"
+      },
+      {
+        "id": 231,
+        "title": "Power of Two",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/power-of-two/",
+        "completed": false,
+        "status": "NOT_STARTED"
+      },
+      {
+        "id": 136,
+        "title": "Single Number",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/single-number/",
+        "completed": false,
+        "status": "NOT_STARTED"
+      },
+      {
+        "id": 268,
+        "title": "Missing Number",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/missing-number/",
+        "completed": false,
+        "status": "NOT_STARTED"
+      },
+      {
+        "id": 125,
+        "title": "Valid Palindrome",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/valid-palindrome/",
+        "completed": false,
+        "status": "NOT_STARTED"
+      },
+      {
+        "id": 704,
+        "title": "Binary Search",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/binary-search/",
+        "completed": false,
+        "status": "NOT_STARTED"
+      }
+    ]
+  },
+  {
     "id": 1,
     "name": "Hashing / Frequency Maps",
     "problems": [
