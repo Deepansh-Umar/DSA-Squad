@@ -17,13 +17,27 @@ let appState = {
 };
 
 // SVG Icons
-const ICONS = {
+const SVG_ICONS = {
+  crown: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>`,
+  trophy: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>`,
+  flame: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"></path></svg>`,
+  zap: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`,
+  medal: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>`,
+  target: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>`,
+  rocket: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-3.05 11a22.35 22.35 0 0 1-3.95 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>`,
+  lock: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`,
+  unlock: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>`,
+  check: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--solved)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
+  clock: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--attempted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+  star: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--mastered)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
+  cross: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--not-started)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`,
+  chart: `<svg class="icon-inline" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>`,
   externalLink: `<svg class="link-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin='round'><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>`
 };
 
 // Supabase Configuration
 const SUPABASE_URL = "https://frcdaaystyoqriobaufo.supabase.co";
-const SUPABASE_KEY = "sb_publishable_Vx4k_fX4DG65tg4SaJ5fFQ_6R9iIqlv";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyY2RhYXlzdHlvcXJpb2JhdWZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczMjU3MzUsImV4cCI6MjEwMjkwMTczNX0.QFLYt6zNnKPFN_JR-CuXjhSRBnGCNdvPgEElU9_TRg4";
 
 // Team Members List
 const USERS = [
@@ -51,34 +65,69 @@ const USER_PASSWORD_HASHES = {
   'Vaibhav': '8448f3120b8e4ce66cd1330bb6afe0de74b7ac1716cdb31142fe9177c707621e'
 };
 
+// Fetch helper with timeout safeguard
+async function fetchWithTimeout(resource, options = {}) {
+  const { timeout = 4000 } = options;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(resource, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
+}
+
 // Initialize Application
 document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
   initSidebarState();
   setupEventListeners();
-  await fetchQuestions(); // Load questions list first
-  await loadAllUsersProgress(); // Load database records
-  determineInitialUser(); // Navigate to requested user page
+  
+  // Load local storage cache into state immediately for sub-10ms render
+  const localAllProgress = localStorage.getItem('dsa_all_progress');
+  if (localAllProgress) {
+    try {
+      appState.allUsersProgress = JSON.parse(localAllProgress);
+    } catch (e) {}
+  }
+
+  // Load questions and render initial view instantly (sub-10ms)
+  await fetchQuestions();
+  determineInitialUser();
+
+  // Hydrate with cloud data asynchronously in background without blocking UI
+  loadAllUsersProgress().then(() => {
+    const user = appState.selectedUser;
+    if (user === 'Admin') {
+      renderAdminDashboard();
+    } else {
+      const targetId = `progress_${user}`;
+      appState.progress = appState.allUsersProgress[targetId] || appState.progress;
+      renderDashboard();
+      renderMilestones();
+    }
+    renderSidebar();
+  }).catch(() => {});
 });
 
-// Setup Theme
+// Setup Theme (Enforced Dark Mode)
 function initTheme() {
-  const savedTheme = localStorage.getItem('dsa_theme');
-  if (savedTheme) {
-    appState.theme = savedTheme;
-  } else {
-    const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-    appState.theme = prefersLight ? 'light' : 'dark';
-  }
-  document.documentElement.setAttribute('data-theme', appState.theme);
+  appState.theme = 'dark';
+  document.documentElement.setAttribute('data-theme', 'dark');
+  localStorage.setItem('dsa_theme', 'dark');
 }
 
-// Toggle Theme
+// Toggle Theme (Dark mode default)
 function toggleTheme() {
-  appState.theme = appState.theme === 'light' ? 'dark' : 'light';
-  document.documentElement.setAttribute('data-theme', appState.theme);
-  localStorage.setItem('dsa_theme', appState.theme);
-  showToast(`Switched to ${appState.theme} mode`, 'success');
+  appState.theme = 'dark';
+  document.documentElement.setAttribute('data-theme', 'dark');
+  localStorage.setItem('dsa_theme', 'dark');
 }
 
 // Sidebar Collapsed/Expanded Persistence
@@ -153,12 +202,13 @@ async function loadAllUsersProgress() {
   }
 
   try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
+    const response = await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/progress`, {
       method: 'GET',
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`
-      }
+      },
+      timeout: 4000
     });
 
     if (!response.ok) {
@@ -171,6 +221,9 @@ async function loadAllUsersProgress() {
       appState.allUsersProgress[row.id] = row.data || {};
     });
 
+    // Save to local storage cache
+    localStorage.setItem('dsa_all_progress', JSON.stringify(appState.allUsersProgress));
+
     // Run migration if Deepansh progress does not exist but user_progress does
     await runDeepanshMigration();
 
@@ -179,13 +232,14 @@ async function loadAllUsersProgress() {
       statusIndicator.querySelector('.status-text').innerText = 'Synced';
     }
   } catch (error) {
-    console.error("Failed to load progress from Supabase:", error);
-    showToast("Cloud sync failed. Using offline cached data.", "error");
+    console.warn("Could not fetch progress from Supabase, using local cache:", error);
     
     // Attempt local storage fallback
     const localAllProgress = localStorage.getItem('dsa_all_progress');
     if (localAllProgress) {
-      appState.allUsersProgress = JSON.parse(localAllProgress);
+      try {
+        appState.allUsersProgress = JSON.parse(localAllProgress);
+      } catch (e) {}
     }
     
     if (statusIndicator) {
@@ -206,7 +260,7 @@ async function runDeepanshMigration() {
     appState.allUsersProgress[targetId] = data;
 
     try {
-      await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
+      await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/progress`, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_KEY,
@@ -214,7 +268,8 @@ async function runDeepanshMigration() {
           'Content-Type': 'application/json',
           'Prefer': 'resolution=merge-duplicates'
         },
-        body: JSON.stringify({ id: targetId, data: data })
+        body: JSON.stringify({ id: targetId, data: data }),
+        timeout: 4000
       });
       showToast("Migrated existing tracker data to Deepansh's page", "success");
     } catch (e) {
@@ -245,7 +300,7 @@ async function saveProgress() {
   }
 
   try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
+    const response = await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/progress`, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
@@ -256,7 +311,8 @@ async function saveProgress() {
       body: JSON.stringify({
         id: targetId,
         data: appState.progress
-      })
+      }),
+      timeout: 4000
     });
 
     if (!response.ok) {
@@ -297,7 +353,7 @@ window.switchUser = function(username, updateUrl = true) {
   document.getElementById('sidebar-overlay-mobile').classList.remove('active');
 
   if (username === 'Admin') {
-    titleEl.innerText = '👑 Admin Dashboard';
+    titleEl.innerHTML = `<span style="display: inline-flex; align-items: center; gap: 8px;">${SVG_ICONS.crown} Admin Dashboard</span>`;
     subtitleEl.innerText = 'Track team progress, goals, solved questions, and topic heatmaps.';
     
     document.getElementById('user-workspace-view').style.display = 'none';
@@ -336,7 +392,7 @@ function renderAuthWidget() {
 
   const user = appState.selectedUser;
   if (user === 'Admin') {
-    container.innerHTML = `<span class="status-badge unlocked" style="color: var(--primary); border-color: rgba(99, 102, 241, 0.25); background: rgba(99, 102, 241, 0.05);">👑 Admin View Only</span>`;
+    container.innerHTML = `<span class="status-badge unlocked" style="color: var(--primary); border-color: rgba(249, 171, 54, 0.25); background: rgba(249, 171, 54, 0.05); display: flex; align-items: center; gap: 6px;">${SVG_ICONS.crown} Admin View Only</span>`;
     return;
   }
 
@@ -344,14 +400,14 @@ function renderAuthWidget() {
   if (isAuth) {
     container.innerHTML = `
       <div class="status-badge unlocked">
-        <span>🔓 Editing: <strong>${user}</strong></span>
+        <span style="display: flex; align-items: center; gap: 6px;">${SVG_ICONS.unlock} Editing: <strong>${user}</strong></span>
         <button class="unlock-action-btn" onclick="handleLogout()" style="background: transparent; color: var(--hard-text); border: 1px solid rgba(239, 68, 68, 0.25); padding: 4px 8px; border-radius: var(--radius-sm); margin-left: 8px;">Lock</button>
       </div>
     `;
   } else {
     container.innerHTML = `
       <div class="status-badge locked">
-        <span>🔒 Read-only</span>
+        <span style="display: flex; align-items: center; gap: 6px;">${SVG_ICONS.lock} Read-only</span>
         <button class="unlock-action-btn" onclick="openLoginModal()">Login</button>
       </div>
     `;
@@ -455,7 +511,7 @@ async function saveDailyGoal() {
 
   closeGoalModal();
   await saveProgress();
-  showToast("Goal configured for today! Go crack it! 🚀", "success");
+  showToast("Goal configured for today! Go crack it!", "success");
 }
 
 // Fetch questions JSON data
@@ -501,7 +557,7 @@ function renderSidebar() {
           <span class="menu-text">${user}</span>
         </div>
         <div class="user-sidebar-stats">
-          ${stats.streak > 0 ? `<span class="user-sidebar-streak" title="Streak">🔥 ${stats.streak}</span>` : ''}
+          ${stats.streak > 0 ? `<span class="user-sidebar-streak" title="Streak">${SVG_ICONS.flame} ${stats.streak}</span>` : ''}
           <span class="user-sidebar-progress" title="Completion percentage">${stats.percentage}%</span>
         </div>
       </li>
@@ -566,61 +622,50 @@ function renderMilestones() {
     });
   });
 
-  // Check if completed any full topic
-  let completedAnyTopic = false;
-  let completedAllPatterns = false;
-  appState.topics.forEach(topic => {
-    let topicTotal = topic.problems.length;
-    let topicSolved = 0;
-    topic.problems.forEach(p => {
-      const prog = progress[p.id];
-      if (prog && (prog.completed || prog.status === 'SOLVED' || prog.status === 'MASTERED')) {
-        topicSolved++;
-      }
-    });
-    if (topicTotal > 0 && topicSolved >= topicTotal) {
-      completedAnyTopic = true;
-    }
-  });
-
   const goalsConfigured = progress.goals ? Object.keys(progress.goals).length : 0;
 
   // Define achievements
   const achievements = [
     {
       id: 'first_blood',
-      title: '🚀 First Blood',
+      title: 'First Blood',
       desc: 'Completed your first coding interview problem!',
+      icon: SVG_ICONS.rocket,
       unlocked: stats.solved >= 1
     },
     {
       id: 'goal_getter',
-      title: '🎯 Goal Setter',
+      title: 'Goal Setter',
       desc: 'Configured your first daily question target.',
+      icon: SVG_ICONS.target,
       unlocked: goalsConfigured >= 1
     },
     {
       id: 'topic_explorer',
-      title: '🔥 Pattern Explorer',
+      title: 'Pattern Explorer',
       desc: 'Solved at least 3 questions in a single pattern.',
+      icon: SVG_ICONS.flame,
       unlocked: checkPatternSolvedCount(progress, 3)
     },
     {
       id: 'easy_master',
-      title: '🏆 Easy Master',
+      title: 'Easy Master',
       desc: 'Solved 15 or more Easy questions.',
+      icon: SVG_ICONS.trophy,
       unlocked: easySolved >= 15
     },
     {
       id: 'consistency',
-      title: '⚡ Dynamic Streak',
+      title: 'Dynamic Streak',
       desc: 'Earned an active streak of 3+ consecutive days.',
+      icon: SVG_ICONS.zap,
       unlocked: streak >= 3
     },
     {
       id: 'dsa_veteran',
-      title: '🥇 DSA Scholar',
+      title: 'DSA Scholar',
       desc: 'Completed 50+ interview questions.',
+      icon: SVG_ICONS.medal,
       unlocked: stats.solved >= 50
     }
   ];
@@ -635,10 +680,10 @@ function renderMilestones() {
     html += `
       <div class="milestone-card ${cardClass}">
         <div class="milestone-badge">
-          ${ach.title.split(' ')[0]}
+          ${ach.icon}
         </div>
         <div class="milestone-info">
-          <div class="milestone-title">${ach.title.substring(ach.title.indexOf(' ') + 1)}</div>
+          <div class="milestone-title">${ach.title}</div>
           <div class="milestone-desc">${ach.desc}</div>
         </div>
         <div class="milestone-lock-overlay">${lockIcon}</div>
@@ -779,6 +824,21 @@ function setupEventListeners() {
     });
   }
 
+  // Toggle Expand/Collapse All Accordions
+  const toggleAllBtn = document.getElementById('toggle-all-accordion-btn');
+  if (toggleAllBtn) {
+    toggleAllBtn.addEventListener('click', () => {
+      if (appState.expandedTopics.size === appState.topics.length) {
+        appState.expandedTopics.clear();
+        toggleAllBtn.innerText = 'Expand All';
+      } else {
+        appState.topics.forEach(t => appState.expandedTopics.add(t.id));
+        toggleAllBtn.innerText = 'Collapse All';
+      }
+      renderTopicsList();
+    });
+  }
+
   // Clear Filters
   const clearBtn = document.getElementById('clear-filters-btn');
   if (clearBtn) {
@@ -865,11 +925,37 @@ function setupEventListeners() {
     });
   }
 
-  // Save Daily Goal Button
+  // Save Daily Goal Button & Modal Controls
   const saveGoalBtn = document.getElementById('save-goal-btn');
-  if (saveGoalBtn) {
-    saveGoalBtn.addEventListener('click', saveDailyGoal);
+  const closeGoalBtn = document.getElementById('close-goal-modal-btn');
+  const cancelGoalBtn = document.getElementById('cancel-goal-modal-btn');
+  const goalModalOverlay = document.getElementById('goal-modal-overlay');
+
+  if (saveGoalBtn) saveGoalBtn.addEventListener('click', saveDailyGoal);
+  if (closeGoalBtn) closeGoalBtn.addEventListener('click', closeGoalModal);
+  if (cancelGoalBtn) cancelGoalBtn.addEventListener('click', closeGoalModal);
+  if (goalModalOverlay) {
+    goalModalOverlay.addEventListener('click', (e) => {
+      if (e.target === goalModalOverlay) closeGoalModal();
+    });
   }
+
+  // Login modal click-outside dismiss
+  const loginModalOverlay = document.getElementById('login-modal-overlay');
+  if (loginModalOverlay) {
+    loginModalOverlay.addEventListener('click', (e) => {
+      if (e.target === loginModalOverlay) closeLoginModal();
+    });
+  }
+
+  // Global Escape Key to close any active modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeModal();
+      closeLoginModal();
+      closeGoalModal();
+    }
+  });
 
   // Admin page button
   const adminBtn = document.getElementById('admin-page-btn');
@@ -899,8 +985,8 @@ window.openLoginModal = function() {
   const desc = document.getElementById('login-modal-desc');
 
   if (modal && input) {
-    title.innerText = `Unlock ${appState.selectedUser}'s Page`;
-    desc.innerText = `Enter the passcode for ${appState.selectedUser} to grant write access.`;
+    title.innerText = "Unlock " + appState.selectedUser + "'s Page";
+    desc.innerText = "Enter the passcode for " + appState.selectedUser + " to grant write access.";
     errorMsg.style.display = 'none';
     input.value = '';
     modal.classList.add('active');
@@ -1015,8 +1101,8 @@ function updateStats() {
     const strokeOffset = 182 - (182 * percentage) / 100;
     circleFill.style.strokeDashoffset = strokeOffset;
   }
-  if (percentageText) percentageText.innerText = `${percentage}%`;
-  if (totalSolvedText) totalSolvedText.innerText = `${solvedProblems} / ${totalProblems} Solved`;
+  if (percentageText) percentageText.innerText = percentage + "%";
+  if (totalSolvedText) totalSolvedText.innerText = solvedProblems + " / " + totalProblems + " Solved";
 
   // Update numerical stats counters
   updateStatCard('stat-easy', easySolved, easyTotal, '#10b981');
@@ -1169,8 +1255,8 @@ function renderTopicsList() {
                   </div>
                   <div class="q-main">
                     <a href="${prob.url}" target="_blank" rel="noopener noreferrer" class="q-title">
-                      <span class="q-id">#${prob.id}</span> — ${escapeHTML(prob.title)}
-                      ${ICONS.externalLink}
+                      <span class="q-id">#${prob.id}</span> &mdash; ${escapeHTML(prob.title)}
+                      ${SVG_ICONS.externalLink}
                     </a>
                   </div>
                   <div class="q-meta-actions">
@@ -1179,10 +1265,10 @@ function renderTopicsList() {
                   <div class="q-status">
                     <div class="status-select-wrapper">
                       <select class="status-select ${prog.status || 'NOT_STARTED'}" ${disabledAttr} onchange="handleStatusChange(${prob.id}, this.value)">
-                        <option value="NOT_STARTED" ${prog.status === 'NOT_STARTED' ? 'selected' : ''}>❌ Unsolved</option>
-                        <option value="ATTEMPTED" ${prog.status === 'ATTEMPTED' ? 'selected' : ''}>⏳ Attempted</option>
-                        <option value="SOLVED" ${prog.status === 'SOLVED' ? 'selected' : ''}>✅ Solved</option>
-                        <option value="MASTERED" ${prog.status === 'MASTERED' ? 'selected' : ''}>⭐ Mastered</option>
+                        <option value="NOT_STARTED" ${prog.status === 'NOT_STARTED' ? 'selected' : ''}>Unsolved</option>
+                        <option value="ATTEMPTED" ${prog.status === 'ATTEMPTED' ? 'selected' : ''}>Attempted</option>
+                        <option value="SOLVED" ${prog.status === 'SOLVED' ? 'selected' : ''}>Solved</option>
+                        <option value="MASTERED" ${prog.status === 'MASTERED' ? 'selected' : ''}>Mastered</option>
                       </select>
                     </div>
                   </div>
@@ -1280,9 +1366,9 @@ function updateProblemRowUI(problemId) {
   }
 
   let labelText = "Unsolved";
-  if (prog.status === 'ATTEMPTED') labelText = "Attempted ⏳";
-  if (prog.status === 'SOLVED') labelText = "Solved ✅";
-  if (prog.status === 'MASTERED') labelText = "Mastered ⭐";
+  if (prog.status === 'ATTEMPTED') labelText = "Attempted";
+  if (prog.status === 'SOLVED') labelText = "Solved";
+  if (prog.status === 'MASTERED') labelText = "Mastered";
 
   showToast(`Updated problem #${problemId} status to ${labelText}`, 'success');
   updateTopicStatsUI(problemId);
@@ -1401,7 +1487,7 @@ function renderAdminDashboard() {
         
         <!-- Left Section: Leaderboard -->
         <div class="admin-section">
-          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">🏆 Global Leaderboard</h3>
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">${SVG_ICONS.trophy} Global Leaderboard</h3>
           <div class="leaderboard-container">
             <table class="leaderboard-table">
               <thead>
@@ -1444,7 +1530,7 @@ function renderAdminDashboard() {
                         <span class="leaderboard-goal-tag ${item.goalClass}">${item.goalText}</span>
                       </td>
                       <td align="center">
-                        <span style="font-weight: 800; color: var(--medium-text);">${item.streak > 0 ? `🔥 ${item.streak}` : '—'}</span>
+                        <span style="font-weight: 800; color: var(--primary); display: inline-flex; align-items: center; gap: 4px;">${item.streak > 0 ? `${SVG_ICONS.flame} ${item.streak}` : '—'}</span>
                       </td>
                     </tr>
                   `;
@@ -1456,7 +1542,7 @@ function renderAdminDashboard() {
 
         <!-- Right Section: Activity Timeline -->
         <div class="admin-section">
-          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">⚡ Recent Activity</h3>
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">${SVG_ICONS.zap} Recent Activity</h3>
           <div class="activity-timeline">
             <div class="activity-feed-list">
               ${activityEvents.length === 0 ? `
@@ -1478,7 +1564,7 @@ function renderAdminDashboard() {
                 
                 return `
                   <div class="activity-item">
-                    <div class="activity-icon-container">✅</div>
+                    <div class="activity-icon-container" style="color: var(--easy);">${SVG_ICONS.check}</div>
                     <div class="activity-info-box">
                       <span class="activity-user-name" onclick="switchUser('${evt.username}')" style="cursor: pointer; color: var(--primary);">${evt.username}</span>
                       <span>completed</span>
@@ -1496,7 +1582,7 @@ function renderAdminDashboard() {
 
       <!-- Row 2: Matrix Completion Heatmap -->
       <div class="matrix-grid-section">
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">📊 Pattern Completion Heatmap</h3>
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">${SVG_ICONS.chart} Pattern Completion Heatmap</h3>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Matrix shows percentage of questions solved by each member across patterns.</p>
         <div class="matrix-scroll-wrapper">
           ${matrixHTML}
