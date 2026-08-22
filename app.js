@@ -9,6 +9,7 @@ let appState = {
   sidebarCollapsed: false,
   theme: 'dark', // 'light' or 'dark'
   expandedTopics: new Set(), // Set of topic IDs currently expanded
+  dailyTasks: {}, // Team daily tasks stored by date string
   filters: {
     search: '',
     difficulty: '',
@@ -99,23 +100,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) {}
   }
 
-  // Load questions and render initial view instantly (sub-10ms)
-  await fetchQuestions();
-  determineInitialUser();
-
-  // Hydrate with cloud data asynchronously in background without blocking UI
-  loadAllUsersProgress().then(() => {
-    const user = appState.selectedUser;
-    if (user === 'Admin') {
-      renderAdminDashboard();
-    } else {
-      const targetId = `progress_${user}`;
-      appState.progress = appState.allUsersProgress[targetId] || appState.progress;
-      renderDashboard();
-      renderMilestones();
-    }
-    renderSidebar();
-  }).catch(() => {});
+  await fetchQuestions(); // Load questions list first
+  await loadAllUsersProgress(); // Load database records
+  determineInitialUser(); // Navigate to requested user page
+  renderDailyTasksWidget(); // Render the team daily tasks panel
 });
 
 // Setup Theme (Enforced Dark Mode)
@@ -223,6 +211,9 @@ async function loadAllUsersProgress() {
       appState.allUsersProgress[row.id] = row.data || {};
     });
 
+    // Extract daily tasks
+    appState.dailyTasks = appState.allUsersProgress['team_daily_tasks'] || {};
+
     // Save to local storage cache
     localStorage.setItem('dsa_all_progress', JSON.stringify(appState.allUsersProgress));
 
@@ -294,6 +285,7 @@ async function saveProgress() {
   renderSidebar();
   updateStats();
   renderMilestones();
+  renderDailyTasksWidget();
 
   const statusIndicator = document.getElementById('save-status-indicator');
   if (statusIndicator) {
@@ -376,6 +368,7 @@ window.switchUser = function(username, updateUrl = true) {
     // Render user sheet
     renderDashboard();
     renderMilestones();
+    renderDailyTasksWidget();
     
     // Trigger daily goal popup if logged in and no goal set for today
     if (checkAuth(username)) {
@@ -956,6 +949,7 @@ function setupEventListeners() {
       closeModal();
       closeLoginModal();
       closeGoalModal();
+      closeAssignTasksModal();
     }
   });
 
@@ -974,6 +968,27 @@ function setupEventListeners() {
       } else {
         toolbar.classList.remove('scrolled');
       }
+    });
+  }
+
+  // Assign Tasks Modal listeners
+  const closeAssignTasksBtn = document.getElementById('close-assign-tasks-btn');
+  const cancelAssignTasksBtn = document.getElementById('cancel-assign-tasks-btn');
+  const saveAssignTasksBtn = document.getElementById('save-assign-tasks-btn');
+  const assignPatternSelect = document.getElementById('assign-pattern-select');
+  const assignTasksModalOverlay = document.getElementById('assign-tasks-modal-overlay');
+
+  if (closeAssignTasksBtn) closeAssignTasksBtn.addEventListener('click', closeAssignTasksModal);
+  if (cancelAssignTasksBtn) cancelAssignTasksBtn.addEventListener('click', closeAssignTasksModal);
+  if (saveAssignTasksBtn) saveAssignTasksBtn.addEventListener('click', saveAssignedTasks);
+  if (assignPatternSelect) {
+    assignPatternSelect.addEventListener('change', (e) => {
+      populateAssignQuestions(e.target.value);
+    });
+  }
+  if (assignTasksModalOverlay) {
+    assignTasksModalOverlay.addEventListener('click', (e) => {
+      if (e.target === assignTasksModalOverlay) closeAssignTasksModal();
     });
   }
 }
@@ -1690,4 +1705,292 @@ function escapeHTML(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+// ==========================================
+// DAILY TEAM TASKS SYSTEM
+// ==========================================
+
+// Helper to look up a question's static details by ID
+function findProblemById(problemId) {
+  problemId = parseInt(problemId);
+  for (const topic of appState.topics) {
+    const prob = topic.problems.find(p => p.id === problemId);
+    if (prob) {
+      return { ...prob, topicName: topic.name, topicId: topic.id };
+    }
+  }
+  return null;
+}
+
+// Render the right-side sticky daily tasks panel
+function renderDailyTasksWidget() {
+  const container = document.getElementById('daily-tasks-widget-container');
+  if (!container) return;
+
+  if (appState.selectedUser === 'Admin') {
+    container.innerHTML = '';
+    return;
+  }
+
+  const todayStr = getLocalDateString();
+  const todayTasks = appState.dailyTasks[todayStr];
+  const isAuth = checkAuth(appState.selectedUser);
+  const dateFormatted = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  let html = `
+    <div class="daily-tasks-widget">
+      <div class="tasks-widget-header">
+        <h3 class="tasks-widget-title">🎯 Daily Team Tasks</h3>
+        <span class="tasks-widget-date">${dateFormatted}</span>
+      </div>
+  `;
+
+  if (todayTasks && todayTasks.problems && todayTasks.problems.length > 0) {
+    html += `
+      <div class="tasks-meta-info">
+        <span>👥 Assigned by: <strong>${todayTasks.assignedBy}</strong></span>
+      </div>
+      <div class="tasks-list-stack">
+    `;
+
+    todayTasks.problems.forEach(probId => {
+      const prob = findProblemById(probId);
+      if (!prob) return;
+
+      const userProg = appState.progress[probId];
+      const isCompleted = userProg && userProg.completed;
+      const status = userProg ? userProg.status : 'NOT_STARTED';
+
+      let statusClass = 'unsolved';
+      let statusLabel = '❌ Unsolved';
+      if (isCompleted || status === 'SOLVED' || status === 'MASTERED') {
+        statusClass = 'completed';
+        statusLabel = '✅ Completed';
+      } else if (status === 'ATTEMPTED') {
+        statusClass = 'attempted';
+        statusLabel = '⏳ Attempted';
+      }
+
+      html += `
+        <div class="task-item-card ${isCompleted ? 'completed' : ''}" onclick="scrollToAndHighlightQuestion(${prob.id})">
+          <div class="task-item-top">
+            <span class="task-pattern-tag" title="${prob.topicName}">${prob.topicName}</span>
+            <span class="task-status-tag ${statusClass}">${statusLabel}</span>
+          </div>
+          <div class="task-title-line">#${prob.id} ${prob.title}</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+            <span class="task-difficulty-badge ${prob.difficulty.toLowerCase()}">${prob.difficulty}</span>
+            ${isCompleted && isAuth ? `
+              <div class="task-actions-row" onclick="event.stopPropagation();">
+                <button class="task-try-again-btn" onclick="resetProblemStatus(${prob.id})">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                  Try Again
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+  } else {
+    html += `
+      <div class="assign-tasks-cta">
+        <p class="assign-tasks-cta-text">No mandatory tasks have been assigned to the team for today yet.</p>
+    `;
+
+    if (isAuth) {
+      html += `
+        <button class="btn btn-primary" onclick="openAssignTasksModal()" style="width: 100%; font-weight: 700; margin-top: 8px;">
+          ➕ Assign Today's Tasks
+        </button>
+      `;
+    } else {
+      html += `
+        <p class="assign-tasks-cta-text" style="font-size: 0.75rem; opacity: 0.7; font-style: italic; margin-top: 4px;">
+          🔒 Unlock page to assign today's tasks.
+        </p>
+      `;
+    }
+
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+// Scroll layout and trigger glowing borders on the requested question row
+window.scrollToAndHighlightQuestion = function(problemId) {
+  const prob = findProblemById(problemId);
+  if (!prob) return;
+
+  if (!appState.expandedTopics.has(prob.topicId)) {
+    appState.expandedTopics.add(prob.topicId);
+    renderTopicsList();
+  }
+
+  const el = document.getElementById(`problem-row-${problemId}`);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.remove('highlight-pulse-glow');
+    void el.offsetWidth; // force reflow
+    el.classList.add('highlight-pulse-glow');
+    setTimeout(() => {
+      el.classList.remove('highlight-pulse-glow');
+    }, 3000);
+  }
+};
+
+// Reset a completed problem back to Unsolved for practicing again
+window.resetProblemStatus = async function(problemId) {
+  const prob = findProblemById(problemId);
+  if (!prob) return;
+
+  if (!confirm(`Are you sure you want to practice "${prob.title}" again? This will clear your completed status for this question.`)) {
+    return;
+  }
+
+  appState.progress[problemId] = {
+    status: 'NOT_STARTED',
+    completed: false,
+    notes: '',
+    solvedAt: null
+  };
+
+  await saveProgress();
+  showToast(`Progress reset for #${problemId} ${prob.title}. Happy coding! 🚀`, 'success');
+};
+
+// Assign Tasks Modal controls
+window.openAssignTasksModal = function() {
+  const modal = document.getElementById('assign-tasks-modal-overlay');
+  if (!modal) return;
+
+  populateAssignPatterns();
+  modal.classList.add('active');
+};
+
+window.closeAssignTasksModal = function() {
+  const modal = document.getElementById('assign-tasks-modal-overlay');
+  if (modal) modal.classList.remove('active');
+};
+
+function populateAssignPatterns() {
+  const select = document.getElementById('assign-pattern-select');
+  if (!select) return;
+
+  select.innerHTML = '<option value="">-- Select Pattern --</option>';
+  appState.topics.forEach(topic => {
+    const option = document.createElement('option');
+    option.value = topic.id;
+    option.innerText = topic.name;
+    select.appendChild(option);
+  });
+
+  const questionsContainer = document.getElementById('assign-questions-list');
+  if (questionsContainer) {
+    questionsContainer.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem; text-align: center; padding: 20px 0;">Select a topic first to see questions.</p>';
+  }
+
+  const warning = document.getElementById('assign-warning-msg');
+  if (warning) warning.style.display = 'none';
+}
+
+function populateAssignQuestions(topicId) {
+  const container = document.getElementById('assign-questions-list');
+  if (!container) return;
+
+  if (!topicId) {
+    container.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem; text-align: center; padding: 20px 0;">Select a topic first to see questions.</p>';
+    return;
+  }
+
+  const topic = appState.topics.find(t => t.id === parseInt(topicId));
+  if (!topic || !topic.problems || topic.problems.length === 0) {
+    container.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem; text-align: center; padding: 20px 0;">No questions in this topic.</p>';
+    return;
+  }
+
+  let html = '';
+  topic.problems.forEach(prob => {
+    html += `
+      <label class="assign-question-checkbox-item">
+        <input type="checkbox" name="assign-problem-checkbox" value="${prob.id}">
+        <span class="assign-question-text-label">
+          <span>#${prob.id} ${prob.title}</span>
+          <span class="task-difficulty-badge ${prob.difficulty.toLowerCase()}">${prob.difficulty}</span>
+        </span>
+      </label>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+async function saveAssignedTasks() {
+  const checkedBoxes = document.querySelectorAll('input[name="assign-problem-checkbox"]:checked');
+  const warning = document.getElementById('assign-warning-msg');
+
+  if (checkedBoxes.length === 0 || checkedBoxes.length > 3) {
+    if (warning) warning.style.display = 'block';
+    return;
+  }
+
+  if (warning) warning.style.display = 'none';
+
+  const selectedIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+  const todayStr = getLocalDateString();
+
+  appState.dailyTasks[todayStr] = {
+    assignedBy: appState.selectedUser,
+    problems: selectedIds
+  };
+
+  // Sync to database
+  const statusIndicator = document.getElementById('save-status-indicator');
+  if (statusIndicator) {
+    statusIndicator.className = 'save-status-indicator saving';
+    statusIndicator.querySelector('.status-text').innerText = 'Syncing...';
+  }
+
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        id: 'team_daily_tasks',
+        data: appState.dailyTasks
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Update global state row
+    appState.allUsersProgress['team_daily_tasks'] = appState.dailyTasks;
+
+    closeAssignTasksModal();
+    renderDailyTasksWidget();
+    showToast("Daily team tasks assigned successfully! 🚀", "success");
+
+    if (statusIndicator) {
+      statusIndicator.className = 'save-status-indicator saved';
+      statusIndicator.querySelector('.status-text').innerText = 'Synced';
+    }
+  } catch (error) {
+    console.error("Failed to sync team tasks:", error);
+    showToast("Failed to sync team tasks with cloud.", "error");
+    if (statusIndicator) {
+      statusIndicator.className = 'save-status-indicator error';
+      statusIndicator.querySelector('.status-text').innerText = 'Offline';
+    }
+  }
 }
