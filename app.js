@@ -175,11 +175,14 @@ function checkAuth(username) {
   return localStorage.getItem(`dsa_auth_${username}`) === 'true';
 }
 
-// Local Date helper
+// Local Date helper (Timezone-locked to IST UTC+5.5)
 function getLocalDateString(date = new Date()) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
+  const utcTime = date.getTime() + (date.getTimezoneOffset() * 60000);
+  const istTime = new Date(utcTime + (3600000 * 5.5));
+  
+  const y = istTime.getFullYear();
+  const m = String(istTime.getMonth() + 1).padStart(2, '0');
+  const d = String(istTime.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 }
 
@@ -213,6 +216,9 @@ async function loadAllUsersProgress() {
 
     // Extract daily tasks
     appState.dailyTasks = appState.allUsersProgress['team_daily_tasks'] || {};
+
+    // Check if we need to auto-assign tasks for today
+    await checkAndAutoAssignTasks();
 
     // Save to local storage cache
     localStorage.setItem('dsa_all_progress', JSON.stringify(appState.allUsersProgress));
@@ -1738,6 +1744,10 @@ function renderDailyTasksWidget() {
   const isAuth = checkAuth(appState.selectedUser);
   const dateFormatted = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
+  // Enforce rotation assignee
+  const todayAssignee = getAssigneeForDate(todayStr);
+  const isAssignee = appState.selectedUser === todayAssignee;
+
   let html = `
     <div class="daily-tasks-widget">
       <div class="tasks-widget-header">
@@ -1748,7 +1758,7 @@ function renderDailyTasksWidget() {
 
   if (todayTasks && todayTasks.problems && todayTasks.problems.length > 0) {
     html += `
-      <div class="tasks-meta-info">
+      <div class="tasks-meta-info" style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px;">
         <span>👥 Assigned by: <strong>${todayTasks.assignedBy}</strong></span>
       </div>
       <div class="tasks-list-stack">
@@ -1796,21 +1806,32 @@ function renderDailyTasksWidget() {
 
     html += `</div>`;
   } else {
+    // Empty state
     html += `
       <div class="assign-tasks-cta">
-        <p class="assign-tasks-cta-text">No mandatory tasks have been assigned to the team for today yet.</p>
+        <div class="tasks-meta-info" style="margin-bottom: 8px;">
+          <span>👑 Today's Assignee: <strong>${todayAssignee}</strong></span>
+        </div>
     `;
 
-    if (isAuth) {
+    if (isAssignee && isAuth) {
       html += `
-        <button class="btn btn-primary" onclick="openAssignTasksModal()" style="width: 100%; font-weight: 700; margin-top: 8px;">
+        <p class="assign-tasks-cta-text" style="margin-bottom: 8px;">It's your turn to assign tasks today!</p>
+        <button class="btn btn-primary" onclick="openAssignTasksModal()" style="width: 100%; font-weight: 700;">
           ➕ Assign Today's Tasks
         </button>
       `;
+    } else if (isAssignee && !isAuth) {
+      html += `
+        <p class="assign-tasks-cta-text" style="font-size: 0.75rem; opacity: 0.7; font-style: italic;">
+          🔒 Unlock your page to assign today's tasks.
+        </p>
+      `;
     } else {
       html += `
-        <p class="assign-tasks-cta-text" style="font-size: 0.75rem; opacity: 0.7; font-style: italic; margin-top: 4px;">
-          🔒 Unlock page to assign today's tasks.
+        <p class="assign-tasks-cta-text" style="font-size: 0.75rem; opacity: 0.7; font-style: italic;">
+          Waiting for ${todayAssignee} to assign tasks.<br>
+          (Auto-assigns after 11:30 AM IST)
         </p>
       `;
     }
@@ -1914,8 +1935,21 @@ function populateAssignQuestions(topicId) {
     return;
   }
 
+  // Find all previously assigned question IDs
+  const alreadyAssignedIds = new Set();
+  Object.values(appState.dailyTasks).forEach(dayObj => {
+    if (dayObj && dayObj.problems) {
+      dayObj.problems.forEach(id => alreadyAssignedIds.add(parseInt(id)));
+    }
+  });
+
   let html = '';
+  let availableCount = 0;
   topic.problems.forEach(prob => {
+    if (alreadyAssignedIds.has(prob.id)) {
+      return;
+    }
+    availableCount++;
     html += `
       <label class="assign-question-checkbox-item">
         <input type="checkbox" name="assign-problem-checkbox" value="${prob.id}">
@@ -1926,7 +1960,12 @@ function populateAssignQuestions(topicId) {
       </label>
     `;
   });
-  container.innerHTML = html;
+
+  if (availableCount === 0) {
+    container.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem; text-align: center; padding: 20px 0;">🎉 All questions in this pattern have already been assigned as tasks!</p>';
+  } else {
+    container.innerHTML = html;
+  }
 }
 
 async function saveAssignedTasks() {
@@ -1991,6 +2030,114 @@ async function saveAssignedTasks() {
     if (statusIndicator) {
       statusIndicator.className = 'save-status-indicator error';
       statusIndicator.querySelector('.status-text').innerText = 'Offline';
+    }
+  }
+}
+
+// Get number of days between two date strings (immune to timezone differences)
+function getDaysSinceBase(dateStr) {
+  const base = new Date(2026, 7, 20); // August 20, 2026 (0-indexed month: 7 is August)
+  const parts = dateStr.split('-');
+  const curr = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  const diffTime = curr - base;
+  return Math.round(diffTime / (1000 * 60 * 60 * 24));
+}
+
+// Get assignee name for a given date
+function getAssigneeForDate(dateStr) {
+  const diffDays = getDaysSinceBase(dateStr);
+  const roster = [
+    'Aditya',
+    'Aman',
+    'Bhumika',
+    'Deepansh',
+    'Garima',
+    'Nitish',
+    'Prashant',
+    'Renuka',
+    'Vaibhav',
+    'Vivek'
+  ];
+  
+  // Use absolute mod in case of date before base date
+  const index = ((diffDays % roster.length) + roster.length) % roster.length;
+  return roster[index];
+}
+
+// Check if current time has passed 11:30 AM IST
+function hasPassedISTDeadline() {
+  const now = new Date();
+  const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const istTime = new Date(utcTime + (3600000 * 5.5));
+  
+  const hours = istTime.getHours();
+  const minutes = istTime.getMinutes();
+  
+  return hours > 11 || (hours === 11 && minutes >= 30);
+}
+
+// Get the first 3 unassigned problems across all topics
+function getUnassignedProblems(count = 3) {
+  const alreadyAssignedIds = new Set();
+  Object.values(appState.dailyTasks).forEach(dayObj => {
+    if (dayObj && dayObj.problems) {
+      dayObj.problems.forEach(id => alreadyAssignedIds.add(parseInt(id)));
+    }
+  });
+
+  const selected = [];
+  for (const topic of appState.topics) {
+    for (const prob of topic.problems) {
+      if (!alreadyAssignedIds.has(prob.id)) {
+        selected.push(prob.id);
+        if (selected.length === count) {
+          return selected;
+        }
+      }
+    }
+  }
+  return selected;
+}
+
+// Automatically assign tasks if the deadline has passed
+async function checkAndAutoAssignTasks() {
+  const todayStr = getLocalDateString();
+  
+  // If tasks for today already exist, nothing to do
+  if (appState.dailyTasks[todayStr]) {
+    return;
+  }
+  
+  // If not assigned and passed 11:30 AM IST
+  if (hasPassedISTDeadline()) {
+    console.log("Auto-assign deadline (11:30 AM IST) passed. Automatically assigning tasks...");
+    const autoProblems = getUnassignedProblems(3);
+    
+    if (autoProblems.length > 0) {
+      appState.dailyTasks[todayStr] = {
+        assignedBy: "System (Auto)",
+        problems: autoProblems
+      };
+      
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: JSON.stringify({
+            id: 'team_daily_tasks',
+            data: appState.dailyTasks
+          })
+        });
+        appState.allUsersProgress['team_daily_tasks'] = appState.dailyTasks;
+        console.log("Auto-assigned tasks successfully synced to Supabase.");
+      } catch (error) {
+        console.error("Auto-assignment sync failed:", error);
+      }
     }
   }
 }
