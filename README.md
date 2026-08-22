@@ -44,7 +44,7 @@ We wanted to keep things incredibly fast, lightweight, and customizable without 
 ## 🚀 Live Demo
 
 Check out our deployed platform here:  
-👉 **[DSA Squad - Live Website](https://deepansh-umar.github.io/DSA-Squad/)** *(Update this link to your actual deployment URL)*
+👉 **[DSA Squad - Live Website](https://dsasheet-ten.vercel.app/)** *(Update this link to your actual deployment URL)*
 
 ---
 
