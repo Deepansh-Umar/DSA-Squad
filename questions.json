@@ -65,7 +65,8 @@
         "difficulty": "Easy",
         "url": "https://leetcode.com/problems/missing-number/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=EtVzbeD8zGU"
       },
       {
         "id": 125,
@@ -73,7 +74,8 @@
         "difficulty": "Easy",
         "url": "https://leetcode.com/problems/valid-palindrome/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=VmzM1uSLAIA"
       },
       {
         "id": 704,
@@ -95,7 +97,8 @@
         "difficulty": "Easy",
         "url": "https://leetcode.com/problems/contains-duplicate/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=TpP6NGC1Vpw"
       },
       {
         "id": 242,
@@ -103,7 +106,8 @@
         "difficulty": "Easy",
         "url": "https://leetcode.com/problems/valid-anagram/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=C-hRcCGLUak"
       },
       {
         "id": 1,
@@ -111,7 +115,8 @@
         "difficulty": "Easy",
         "url": "https://leetcode.com/problems/two-sum/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=kIG_-S20Qrc"
       },
       {
         "id": 49,
@@ -119,7 +124,8 @@
         "difficulty": "Medium",
         "url": "https://leetcode.com/problems/group-anagrams/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=oIzkZOMZLxI"
       },
       {
         "id": 347,
@@ -157,7 +163,8 @@
         "difficulty": "Medium",
         "url": "https://leetcode.com/problems/container-with-most-water/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=VgSetAmy_A0"
       },
       {
         "id": 15,
@@ -165,7 +172,8 @@
         "difficulty": "Medium",
         "url": "https://leetcode.com/problems/3sum/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=_mZgP-Gwkm8"
       },
       {
         "id": 16,
@@ -227,7 +235,8 @@
         "difficulty": "Medium",
         "url": "https://leetcode.com/problems/longest-repeating-character-replacement/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=b3nebI4vKzk"
       },
       {
         "id": 3,
@@ -235,7 +244,8 @@
         "difficulty": "Medium",
         "url": "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=aHwl6PMDWJ8"
       },
       {
         "id": 76,
@@ -243,7 +253,8 @@
         "difficulty": "Hard",
         "url": "https://leetcode.com/problems/minimum-window-substring/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=OjskLohz_Nw"
       }
     ]
   },
@@ -497,7 +508,8 @@
         "difficulty": "Medium",
         "url": "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=5AM_xIetqvQ"
       },
       {
         "id": 33,
@@ -505,7 +517,8 @@
         "difficulty": "Medium",
         "url": "https://leetcode.com/problems/search-in-rotated-sorted-array/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=o75o5Ucs6Es"
       },
       {
         "id": 162,
@@ -589,7 +602,8 @@
         "difficulty": "Easy",
         "url": "https://leetcode.com/problems/linked-list-cycle/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=y3zYjEXxGrU"
       },
       {
         "id": 160,
@@ -613,7 +627,8 @@
         "difficulty": "Medium",
         "url": "https://leetcode.com/problems/remove-nth-node-from-end-of-list/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=4q6h8q1n-Cs"
       },
       {
         "id": 142,
@@ -635,7 +650,8 @@
         "difficulty": "Easy",
         "url": "https://leetcode.com/problems/merge-two-sorted-lists/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=Yn0uKD1Dunk"
       },
       {
         "id": 24,
@@ -667,7 +683,8 @@
         "difficulty": "Hard",
         "url": "https://leetcode.com/problems/merge-k-sorted-lists/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=F7by_uzXf1k"
       },
       {
         "id": 25,
@@ -689,7 +706,8 @@
         "difficulty": "Easy",
         "url": "https://leetcode.com/problems/maximum-depth-of-binary-tree/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=AFYnII4XDa8"
       },
       {
         "id": 226,
@@ -697,7 +715,8 @@
         "difficulty": "Easy",
         "url": "https://leetcode.com/problems/invert-binary-tree/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=nADZcbQOyGI"
       },
       {
         "id": 112,
@@ -729,7 +748,8 @@
         "difficulty": "Hard",
         "url": "https://leetcode.com/problems/binary-tree-maximum-path-sum/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=8xZ0Qu8wRDw"
       }
     ]
   },
@@ -751,7 +771,8 @@
         "difficulty": "Medium",
         "url": "https://leetcode.com/problems/binary-tree-level-order-traversal/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=40kr4XGGNRI"
       },
       {
         "id": 103,
@@ -1453,7 +1474,8 @@
         "difficulty": "Easy",
         "url": "https://leetcode.com/problems/number-of-1-bits/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=l_hGYYMAK3k"
       },
       {
         "id": 268,
@@ -1461,7 +1483,8 @@
         "difficulty": "Easy",
         "url": "https://leetcode.com/problems/missing-number/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=EtVzbeD8zGU"
       },
       {
         "id": 190,
@@ -1469,7 +1492,8 @@
         "difficulty": "Easy",
         "url": "https://leetcode.com/problems/reverse-bits/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=9KcyUbljAv0"
       },
       {
         "id": 338,
@@ -1477,7 +1501,8 @@
         "difficulty": "Easy",
         "url": "https://leetcode.com/problems/counting-bits/",
         "completed": false,
-        "status": "NOT_STARTED"
+        "status": "NOT_STARTED",
+        "youtubeUrl": "https://www.youtube.com/watch?v=8gDZkVVry00"
       },
       {
         "id": 137,

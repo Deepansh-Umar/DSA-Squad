@@ -2038,3 +2038,44 @@ header {
   font-size: 0.8rem;
   font-weight: 600;
 }
+
+/* YouTube Solution Link Button */
+.q-youtube-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  flex-shrink: 0;
+}
+
+.q-youtube-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 0, 0, 0.04);
+  border: 1px solid rgba(255, 0, 0, 0.15);
+  color: #ff0000;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.q-youtube-btn:hover {
+  background: rgba(255, 0, 0, 0.16);
+  border-color: rgba(255, 0, 0, 0.4);
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.15);
+}
+
+.q-youtube-btn svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.q-youtube-btn:hover svg {
+  transform: scale(1.05);
+}
