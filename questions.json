@@ -141,6 +141,36 @@
   },
   {
     "id": 2,
+    "name": "Array",
+    "problems": [
+      {
+        "id": 56,
+        "title": "Merge Intervals",
+        "difficulty": "Medium",
+        "url": "https://leetcode.com/problems/merge-intervals/",
+        "completed": false,
+        "status": "NOT_STARTED"
+      },
+      {
+        "id": 53,
+        "title": "Maximum Subarray",
+        "difficulty": "Medium",
+        "url": "https://leetcode.com/problems/maximum-subarray/",
+        "completed": false,
+        "status": "NOT_STARTED"
+      },
+      {
+        "id": 88,
+        "title": "Merge Sorted Array",
+        "difficulty": "Easy",
+        "url": "https://leetcode.com/problems/merge-sorted-array/",
+        "completed": false,
+        "status": "NOT_STARTED"
+      }
+    ]
+  },
+  {
+    "id": 3,
     "name": "Two Pointers",
     "problems": [
       {
@@ -194,7 +224,7 @@
     ]
   },
   {
-    "id": 3,
+    "id": 4,
     "name": "Sliding Window",
     "problems": [
       {
@@ -248,7 +278,7 @@
     ]
   },
   {
-    "id": 4,
+    "id": 5,
     "name": "Prefix Sum / Running Sum",
     "problems": [
       {
@@ -302,7 +332,7 @@
     ]
   },
   {
-    "id": 5,
+    "id": 6,
     "name": "Difference Array / Range Updates",
     "problems": [
       {
@@ -356,7 +386,7 @@
     ]
   },
   {
-    "id": 6,
+    "id": 7,
     "name": "Monotonic Stack",
     "problems": [
       {
@@ -410,12 +440,12 @@
     ]
   },
   {
-    "id": 7,
+    "id": 8,
     "name": "Monotonic Queue / Deque",
     "problems": [
       {
         "id": 1438,
-        "title": "Longest Continuous Subarray With Absolute Diff \u2264 Limit",
+        "title": "Longest Continuous Subarray With Absolute Diff ≤ Limit",
         "difficulty": "Medium",
         "url": "https://leetcode.com/problems/longest-continuous-subarray-with-absolute-diff-limit/",
         "completed": false,
@@ -464,7 +494,7 @@
     ]
   },
   {
-    "id": 8,
+    "id": 9,
     "name": "Binary Search on Sorted Data",
     "problems": [
       {
@@ -518,7 +548,7 @@
     ]
   },
   {
-    "id": 9,
+    "id": 10,
     "name": "Binary Search on Answer",
     "problems": [
       {
@@ -572,7 +602,7 @@
     ]
   },
   {
-    "id": 10,
+    "id": 11,
     "name": "Fast / Slow Pointers",
     "problems": [
       {
@@ -626,7 +656,7 @@
     ]
   },
   {
-    "id": 11,
+    "id": 12,
     "name": "Linked List Manipulation",
     "problems": [
       {
@@ -680,7 +710,7 @@
     ]
   },
   {
-    "id": 12,
+    "id": 13,
     "name": "Tree DFS",
     "problems": [
       {
@@ -734,7 +764,7 @@
     ]
   },
   {
-    "id": 13,
+    "id": 14,
     "name": "Tree BFS / Level Order",
     "problems": [
       {
@@ -788,7 +818,7 @@
     ]
   },
   {
-    "id": 14,
+    "id": 15,
     "name": "BST Problems",
     "problems": [
       {
@@ -842,7 +872,7 @@
     ]
   },
   {
-    "id": 15,
+    "id": 16,
     "name": "Backtracking Basics",
     "problems": [
       {
@@ -896,7 +926,7 @@
     ]
   },
   {
-    "id": 16,
+    "id": 17,
     "name": "Backtracking With Constraints",
     "problems": [
       {
@@ -950,7 +980,7 @@
     ]
   },
   {
-    "id": 17,
+    "id": 18,
     "name": "Graph BFS / DFS",
     "problems": [
       {
@@ -1004,7 +1034,7 @@
     ]
   },
   {
-    "id": 18,
+    "id": 19,
     "name": "Topological Sort / DAG",
     "problems": [
       {
@@ -1058,7 +1088,7 @@
     ]
   },
   {
-    "id": 19,
+    "id": 20,
     "name": "Union Find / DSU",
     "problems": [
       {
@@ -1112,7 +1142,7 @@
     ]
   },
   {
-    "id": 20,
+    "id": 21,
     "name": "Shortest Path",
     "problems": [
       {
@@ -1166,7 +1196,7 @@
     ]
   },
   {
-    "id": 21,
+    "id": 22,
     "name": "MST / Graph Greedy",
     "problems": [
       {
@@ -1220,7 +1250,7 @@
     ]
   },
   {
-    "id": 22,
+    "id": 23,
     "name": "Heap / Top K",
     "problems": [
       {
@@ -1274,7 +1304,7 @@
     ]
   },
   {
-    "id": 23,
+    "id": 24,
     "name": "Trie",
     "problems": [
       {
@@ -1328,7 +1358,7 @@
     ]
   },
   {
-    "id": 24,
+    "id": 25,
     "name": "Intervals",
     "problems": [
       {
@@ -1382,7 +1412,7 @@
     ]
   },
   {
-    "id": 25,
+    "id": 26,
     "name": "Greedy Scheduling / Sorting",
     "problems": [
       {
@@ -1436,7 +1466,7 @@
     ]
   },
   {
-    "id": 26,
+    "id": 27,
     "name": "Bit Manipulation",
     "problems": [
       {
@@ -1490,7 +1520,7 @@
     ]
   },
   {
-    "id": 27,
+    "id": 28,
     "name": "1D DP Basics",
     "problems": [
       {
