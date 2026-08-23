@@ -217,6 +217,9 @@ async function loadAllUsersProgress() {
     // Extract daily tasks
     appState.dailyTasks = appState.allUsersProgress['team_daily_tasks'] || {};
 
+    // Rebuild topics list to append dynamic Assignments category
+    rebuildTopicsList();
+
     // Check if we need to auto-assign tasks for today
     await checkAndAutoAssignTasks();
 
@@ -520,14 +523,18 @@ async function fetchQuestions() {
   const loader = document.getElementById('global-loader');
   try {
     if (typeof QUESTIONS_DATA !== 'undefined') {
-      appState.topics = QUESTIONS_DATA;
+      appState.topics = QUESTIONS_DATA.filter(t => t.id !== 2); // Exclude static Array topic
     } else {
       const response = await fetch('./questions.json');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      appState.topics = await response.json();
+      const data = await response.json();
+      appState.topics = data.filter(t => t.id !== 2); // Exclude static Array topic
     }
+    
+    // Rebuild initially to append cached dynamic assignments
+    rebuildTopicsList();
     
     if (appState.topics.length > 0) {
       appState.expandedTopics.add(appState.topics[0].id);
@@ -984,6 +991,11 @@ function setupEventListeners() {
   const assignPatternSelect = document.getElementById('assign-pattern-select');
   const assignTasksModalOverlay = document.getElementById('assign-tasks-modal-overlay');
 
+  // New tab and custom add button selectors
+  const togglePickSheetBtn = document.getElementById('toggle-pick-sheet-btn');
+  const toggleAddLeetcodeBtn = document.getElementById('toggle-add-leetcode-btn');
+  const addCustomQuestionBtn = document.getElementById('add-custom-question-btn');
+
   if (closeAssignTasksBtn) closeAssignTasksBtn.addEventListener('click', closeAssignTasksModal);
   if (cancelAssignTasksBtn) cancelAssignTasksBtn.addEventListener('click', closeAssignTasksModal);
   if (saveAssignTasksBtn) saveAssignTasksBtn.addEventListener('click', saveAssignedTasks);
@@ -997,6 +1009,10 @@ function setupEventListeners() {
       if (e.target === assignTasksModalOverlay) closeAssignTasksModal();
     });
   }
+
+  if (togglePickSheetBtn) togglePickSheetBtn.addEventListener('click', () => toggleModalTabs('sheet'));
+  if (toggleAddLeetcodeBtn) toggleAddLeetcodeBtn.addEventListener('click', () => toggleModalTabs('leetcode'));
+  if (addCustomQuestionBtn) addCustomQuestionBtn.addEventListener('click', handleAddCustomQuestion);
 }
 
 // Open Login Modal
@@ -1260,45 +1276,103 @@ function renderTopicsList() {
           </div>
         </div>
         <div class="topic-content" style="max-height: ${isExpanded ? 'none' : '0px'}">
-          <div class="questions-table">
-            ${visibleProblems.map(prob => {
-              const prog = appState.progress[prob.id] || { completed: false, status: 'NOT_STARTED' };
-              const isChecked = prog.completed || prog.status === 'SOLVED' || prog.status === 'MASTERED';
-              const disabledAttr = isLocked ? 'disabled' : '';
+          ${topic.isAssignmentsCategory ? 
+            // Group problems by subtopic
+            topic.subtopics.map(sub => {
+              const subProblems = sub.problems.filter(prob => isProblemMatchingFilters(prob, topic.id));
+              if (subProblems.length === 0) return '';
               
               return `
-                <div class="q-row" id="q-row-${prob.id}">
-                  <div class="q-check">
-                    <label class="checkbox-container">
-                      <input type="checkbox" ${isChecked ? 'checked' : ''} ${disabledAttr} onchange="handleCheckboxChange(${prob.id}, this.checked)">
-                      <span class="custom-checkbox">
-                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                      </span>
-                    </label>
+                <div class="assignment-subtopic-section" style="margin-bottom: 20px; padding: 0 16px;">
+                  <div class="subtopic-header" style="font-weight: 800; font-size: 0.85rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 10px; background: rgba(255, 255, 255, 0.02); border-left: 3px solid var(--primary); margin-bottom: 10px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;">
+                    ${escapeHTML(sub.name)}
                   </div>
-                  <div class="q-main">
-                    <a href="${prob.url}" target="_blank" rel="noopener noreferrer" class="q-title">
-                      <span class="q-id">#${prob.id}</span> &mdash; ${escapeHTML(prob.title)}
-                      ${SVG_ICONS.externalLink}
-                    </a>
-                  </div>
-                  <div class="q-meta-actions">
-                    <span class="badge ${prob.difficulty.toLowerCase()}">${prob.difficulty}</span>
-                  </div>
-                  <div class="q-status">
-                    <div class="status-select-wrapper">
-                      <select class="status-select ${prog.status || 'NOT_STARTED'}" ${disabledAttr} onchange="handleStatusChange(${prob.id}, this.value)">
-                        <option value="NOT_STARTED" ${prog.status === 'NOT_STARTED' ? 'selected' : ''}>Unsolved</option>
-                        <option value="ATTEMPTED" ${prog.status === 'ATTEMPTED' ? 'selected' : ''}>Attempted</option>
-                        <option value="SOLVED" ${prog.status === 'SOLVED' ? 'selected' : ''}>Solved</option>
-                        <option value="MASTERED" ${prog.status === 'MASTERED' ? 'selected' : ''}>Mastered</option>
-                      </select>
-                    </div>
+                  <div class="questions-table" style="border: 1px solid rgba(255,255,255,0.03); border-radius: var(--radius-md); overflow: hidden;">
+                    ${subProblems.map(prob => {
+                      const prog = appState.progress[prob.id] || { completed: false, status: 'NOT_STARTED' };
+                      const isChecked = prog.completed || prog.status === 'SOLVED' || prog.status === 'MASTERED';
+                      const disabledAttr = isLocked ? 'disabled' : '';
+                      
+                      return `
+                        <div class="q-row" id="q-row-${prob.id}">
+                          <div class="q-check">
+                            <label class="checkbox-container">
+                              <input type="checkbox" ${isChecked ? 'checked' : ''} ${disabledAttr} onchange="handleCheckboxChange(${prob.id}, this.checked)">
+                              <span class="custom-checkbox">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                              </span>
+                            </label>
+                          </div>
+                          <div class="q-main">
+                            <a href="${prob.url}" target="_blank" rel="noopener noreferrer" class="q-title">
+                              <span class="q-id">#${prob.id}</span> &mdash; ${escapeHTML(prob.title)}
+                              ${SVG_ICONS.externalLink}
+                            </a>
+                          </div>
+                          <div class="q-meta-actions">
+                            <span class="badge ${prob.difficulty.toLowerCase()}">${prob.difficulty}</span>
+                          </div>
+                          <div class="q-status">
+                            <div class="status-select-wrapper">
+                              <select class="status-select ${prog.status || 'NOT_STARTED'}" ${disabledAttr} onchange="handleStatusChange(${prob.id}, this.value)">
+                                <option value="NOT_STARTED" ${prog.status === 'NOT_STARTED' ? 'selected' : ''}>Unsolved</option>
+                                <option value="ATTEMPTED" ${prog.status === 'ATTEMPTED' ? 'selected' : ''}>Attempted</option>
+                                <option value="SOLVED" ${prog.status === 'SOLVED' ? 'selected' : ''}>Solved</option>
+                                <option value="MASTERED" ${prog.status === 'MASTERED' ? 'selected' : ''}>Mastered</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
                   </div>
                 </div>
               `;
-            }).join('')}
-          </div>
+            }).join('')
+          : 
+            // Regular flat rendering
+            `
+            <div class="questions-table">
+              ${visibleProblems.map(prob => {
+                const prog = appState.progress[prob.id] || { completed: false, status: 'NOT_STARTED' };
+                const isChecked = prog.completed || prog.status === 'SOLVED' || prog.status === 'MASTERED';
+                const disabledAttr = isLocked ? 'disabled' : '';
+                
+                return `
+                  <div class="q-row" id="q-row-${prob.id}">
+                    <div class="q-check">
+                      <label class="checkbox-container">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} ${disabledAttr} onchange="handleCheckboxChange(${prob.id}, this.checked)">
+                        <span class="custom-checkbox">
+                          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </span>
+                      </label>
+                    </div>
+                    <div class="q-main">
+                      <a href="${prob.url}" target="_blank" rel="noopener noreferrer" class="q-title">
+                        <span class="q-id">#${prob.id}</span> &mdash; ${escapeHTML(prob.title)}
+                        ${SVG_ICONS.externalLink}
+                      </a>
+                    </div>
+                    <div class="q-meta-actions">
+                      <span class="badge ${prob.difficulty.toLowerCase()}">${prob.difficulty}</span>
+                    </div>
+                    <div class="q-status">
+                      <div class="status-select-wrapper">
+                        <select class="status-select ${prog.status || 'NOT_STARTED'}" ${disabledAttr} onchange="handleStatusChange(${prob.id}, this.value)">
+                          <option value="NOT_STARTED" ${prog.status === 'NOT_STARTED' ? 'selected' : ''}>Unsolved</option>
+                          <option value="ATTEMPTED" ${prog.status === 'ATTEMPTED' ? 'selected' : ''}>Attempted</option>
+                          <option value="SOLVED" ${prog.status === 'SOLVED' ? 'selected' : ''}>Solved</option>
+                          <option value="MASTERED" ${prog.status === 'MASTERED' ? 'selected' : ''}>Mastered</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            `
+          }
         </div>
       </div>
     `;
@@ -1716,8 +1790,7 @@ function escapeHTML(str) {
 // ==========================================
 // DAILY TEAM TASKS SYSTEM
 // ==========================================
-
-// Helper to look up a question's static details by ID
+// Helper to look up a question's static details by ID
 function findProblemById(problemId) {
   problemId = parseInt(problemId);
   for (const topic of appState.topics) {
@@ -1727,6 +1800,67 @@ function findProblemById(problemId) {
     }
   }
   return null;
+}
+
+// Default dynamic assignments structure
+const defaultAssignments = {
+  subtopics: [
+    {
+      "name": "Arrays",
+      "problems": [
+        {
+          "id": 56,
+          "title": "Merge Intervals",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/merge-intervals/"
+        },
+        {
+          "id": 53,
+          "title": "Maximum Subarray",
+          "difficulty": "Medium",
+          "url": "https://leetcode.com/problems/maximum-subarray/"
+        },
+        {
+          "id": 88,
+          "title": "Merge Sorted Array",
+          "difficulty": "Easy",
+          "url": "https://leetcode.com/problems/merge-sorted-array/"
+        }
+      ]
+    }
+  ]
+};
+
+// Rebuild appState.topics to append dynamic assignments category
+function rebuildTopicsList() {
+  const baseTopics = appState.topics.filter(t => t.id !== 2 && t.id !== 'assignments');
+  const dynAssignments = appState.allUsersProgress['dynamic_assignments'] || { ...defaultAssignments };
+  if (!dynAssignments.subtopics) {
+    dynAssignments.subtopics = [];
+  }
+
+  const allProblems = [];
+  dynAssignments.subtopics.forEach(sub => {
+    sub.problems.forEach(p => {
+      if (!allProblems.some(existing => existing.id === p.id)) {
+        allProblems.push({
+          ...p,
+          completed: false,
+          status: 'NOT_STARTED'
+        });
+      }
+    });
+  });
+
+  const assignmentsTopic = {
+    id: 'assignments',
+    name: 'Assignments',
+    isAssignmentsCategory: true,
+    subtopics: dynAssignments.subtopics,
+    problems: allProblems
+  };
+
+  appState.topics = [...baseTopics, assignmentsTopic];
 }
 
 // Render the right-side sticky daily tasks panel
@@ -1744,9 +1878,8 @@ function renderDailyTasksWidget() {
   const isAuth = checkAuth(appState.selectedUser);
   const dateFormatted = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-  // Enforce rotation assignee
-  const todayAssignee = getAssigneeForDate(todayStr);
-  const isAssignee = appState.selectedUser === todayAssignee;
+  // Only Deepansh has assignment powers
+  const isAssignee = appState.selectedUser === 'Deepansh';
 
   let html = `
     <div class="daily-tasks-widget">
@@ -1758,7 +1891,7 @@ function renderDailyTasksWidget() {
 
   if (todayTasks && todayTasks.problems && todayTasks.problems.length > 0) {
     html += `
-      <div class="tasks-meta-info" style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px;">
+      <div class="tasks-meta-info" style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px;">
         <span>👥 Assigned by: <strong>${todayTasks.assignedBy}</strong></span>
       </div>
       <div class="tasks-list-stack">
@@ -1785,7 +1918,7 @@ function renderDailyTasksWidget() {
       html += `
         <div class="task-item-card ${isCompleted ? 'completed' : ''}" onclick="scrollToAndHighlightQuestion(${prob.id})">
           <div class="task-item-top">
-            <span class="task-pattern-tag" title="${prob.topicName}">${prob.topicName}</span>
+            <span class="task-pattern-tag" title="${prob.topicName || 'Assignments'}">${prob.topicName || 'Assignments'}</span>
             <span class="task-status-tag ${statusClass}">${statusLabel}</span>
           </div>
           <div class="task-title-line">#${prob.id} ${prob.title}</div>
@@ -1805,18 +1938,24 @@ function renderDailyTasksWidget() {
     });
 
     html += `</div>`;
+
+    // Deepansh can edit the tasks even after assignment!
+    if (isAssignee && isAuth) {
+      html += `
+        <button class="btn btn-secondary" onclick="openAssignTasksModal()" style="width: 100%; font-weight: 700; margin-top: 16px; border: 1px solid var(--primary); color: var(--primary);">
+          ✏️ Edit Today's Tasks
+        </button>
+      `;
+    }
   } else {
     // Empty state
     html += `
       <div class="assign-tasks-cta">
-        <div class="tasks-meta-info" style="margin-bottom: 8px;">
-          <span>👑 Today's Assignee: <strong>${todayAssignee}</strong></span>
-        </div>
+        <p class="assign-tasks-cta-text" style="margin-bottom: 8px;">No tasks assigned by Deepansh for today yet.</p>
     `;
 
     if (isAssignee && isAuth) {
       html += `
-        <p class="assign-tasks-cta-text" style="margin-bottom: 8px;">It's your turn to assign tasks today!</p>
         <button class="btn btn-primary" onclick="openAssignTasksModal()" style="width: 100%; font-weight: 700;">
           ➕ Assign Today's Tasks
         </button>
@@ -1830,7 +1969,7 @@ function renderDailyTasksWidget() {
     } else {
       html += `
         <p class="assign-tasks-cta-text" style="font-size: 0.75rem; opacity: 0.7; font-style: italic;">
-          Waiting for ${todayAssignee} to assign tasks.<br>
+          Waiting for Deepansh to assign tasks.<br>
           (Auto-assigns after 11:30 AM IST)
         </p>
       `;
@@ -1853,7 +1992,7 @@ window.scrollToAndHighlightQuestion = function(problemId) {
     renderTopicsList();
   }
 
-  const el = document.getElementById(`problem-row-${problemId}`);
+  const el = document.getElementById(`problem-row-${problemId}`) || document.getElementById(`q-row-${problemId}`);
   if (el) {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el.classList.remove('highlight-pulse-glow');
@@ -1885,12 +2024,46 @@ window.resetProblemStatus = async function(problemId) {
   showToast(`Progress reset for #${problemId} ${prob.title}. Happy coding! 🚀`, 'success');
 };
 
+// Selection Pool state in the modal
+let assignmentModalPool = [];
+
 // Assign Tasks Modal controls
 window.openAssignTasksModal = function() {
   const modal = document.getElementById('assign-tasks-modal-overlay');
   if (!modal) return;
 
+  const todayStr = getLocalDateString();
+  const todayTasks = appState.dailyTasks[todayStr];
+
+  assignmentModalPool = [];
+
+  if (todayTasks && todayTasks.problems) {
+    todayTasks.problems.forEach(probId => {
+      const prob = findProblemById(probId);
+      if (prob) {
+        const dynAssignments = appState.allUsersProgress['dynamic_assignments'] || defaultAssignments;
+        let subName = 'Arrays';
+        const foundSub = dynAssignments.subtopics.find(s => s.problems.some(p => p.id === probId));
+        if (foundSub) {
+          subName = foundSub.name;
+        }
+
+        assignmentModalPool.push({
+          id: prob.id,
+          title: prob.title,
+          difficulty: prob.difficulty,
+          url: prob.url,
+          subtopic: subName,
+          isCustom: false
+        });
+      }
+    });
+  }
+
   populateAssignPatterns();
+  renderSelectedAssignmentPool();
+  toggleModalTabs('sheet');
+
   modal.classList.add('active');
 };
 
@@ -1899,12 +2072,49 @@ window.closeAssignTasksModal = function() {
   if (modal) modal.classList.remove('active');
 };
 
+window.toggleModalTabs = function(activeTab) {
+  const pickSheetBtn = document.getElementById('toggle-pick-sheet-btn');
+  const addLeetcodeBtn = document.getElementById('toggle-add-leetcode-btn');
+  const sectionPick = document.getElementById('section-pick-sheet');
+  const sectionAdd = document.getElementById('section-add-leetcode');
+
+  if (activeTab === 'sheet') {
+    if (sectionPick) sectionPick.style.display = 'block';
+    if (sectionAdd) sectionAdd.style.display = 'none';
+    if (pickSheetBtn) {
+      pickSheetBtn.style.background = 'var(--border-color)';
+      pickSheetBtn.style.border = '1px solid var(--primary)';
+      pickSheetBtn.style.color = 'var(--text-primary)';
+    }
+    if (addLeetcodeBtn) {
+      addLeetcodeBtn.style.background = 'transparent';
+      addLeetcodeBtn.style.border = '1px solid var(--border-color)';
+      addLeetcodeBtn.style.color = 'var(--text-secondary)';
+    }
+  } else {
+    if (sectionPick) sectionPick.style.display = 'none';
+    if (sectionAdd) sectionAdd.style.display = 'block';
+    if (pickSheetBtn) {
+      pickSheetBtn.style.background = 'transparent';
+      pickSheetBtn.style.border = '1px solid var(--border-color)';
+      pickSheetBtn.style.color = 'var(--text-secondary)';
+    }
+    if (addLeetcodeBtn) {
+      addLeetcodeBtn.style.background = 'var(--border-color)';
+      addLeetcodeBtn.style.border = '1px solid var(--primary)';
+      addLeetcodeBtn.style.color = 'var(--text-primary)';
+    }
+  }
+};
+
 function populateAssignPatterns() {
   const select = document.getElementById('assign-pattern-select');
   if (!select) return;
 
   select.innerHTML = '<option value="">-- Select Pattern --</option>';
   appState.topics.forEach(topic => {
+    // Exclude Assignments category from picking source
+    if (topic.isAssignmentsCategory) return;
     const option = document.createElement('option');
     option.value = topic.id;
     option.innerText = topic.name;
@@ -1913,7 +2123,7 @@ function populateAssignPatterns() {
 
   const questionsContainer = document.getElementById('assign-questions-list');
   if (questionsContainer) {
-    questionsContainer.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem; text-align: center; padding: 20px 0;">Select a topic first to see questions.</p>';
+    questionsContainer.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.85rem; text-align: center; padding: 10px 0;">Select a pattern first.</p>';
   }
 
   const warning = document.getElementById('assign-warning-msg');
@@ -1925,13 +2135,13 @@ function populateAssignQuestions(topicId) {
   if (!container) return;
 
   if (!topicId) {
-    container.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem; text-align: center; padding: 20px 0;">Select a topic first to see questions.</p>';
+    container.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.85rem; text-align: center; padding: 10px 0;">Select a pattern first.</p>';
     return;
   }
 
   const topic = appState.topics.find(t => t.id === parseInt(topicId));
   if (!topic || !topic.problems || topic.problems.length === 0) {
-    container.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem; text-align: center; padding: 20px 0;">No questions in this topic.</p>';
+    container.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.85rem; text-align: center; padding: 20px 0;">No questions in this topic.</p>';
     return;
   }
 
@@ -1946,13 +2156,15 @@ function populateAssignQuestions(topicId) {
   let html = '';
   let availableCount = 0;
   topic.problems.forEach(prob => {
-    if (alreadyAssignedIds.has(prob.id)) {
+    // If it is in history and NOT currently selected, skip it (remove from future task list)
+    const isCurrentlySelected = assignmentModalPool.some(item => item.id === prob.id);
+    if (alreadyAssignedIds.has(prob.id) && !isCurrentlySelected) {
       return;
     }
     availableCount++;
     html += `
       <label class="assign-question-checkbox-item">
-        <input type="checkbox" name="assign-problem-checkbox" value="${prob.id}">
+        <input type="checkbox" name="assign-problem-checkbox" value="${prob.id}" ${isCurrentlySelected ? 'checked' : ''} onchange="handleModalCheckboxChange(this)">
         <span class="assign-question-text-label">
           <span>#${prob.id} ${prob.title}</span>
           <span class="task-difficulty-badge ${prob.difficulty.toLowerCase()}">${prob.difficulty}</span>
@@ -1962,32 +2174,225 @@ function populateAssignQuestions(topicId) {
   });
 
   if (availableCount === 0) {
-    container.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem; text-align: center; padding: 20px 0;">🎉 All questions in this pattern have already been assigned as tasks!</p>';
+    container.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.85rem; text-align: center; padding: 20px 0;">🎉 All questions in this pattern have already been assigned as tasks!</p>';
   } else {
     container.innerHTML = html;
   }
 }
 
+window.handleModalCheckboxChange = function(checkbox) {
+  const probId = parseInt(checkbox.value);
+  const isChecked = checkbox.checked;
+
+  if (isChecked) {
+    const exists = assignmentModalPool.some(item => item.id === probId);
+    if (!exists) {
+      const prob = findProblemById(probId);
+      if (prob) {
+        const dynAssignments = appState.allUsersProgress['dynamic_assignments'] || defaultAssignments;
+        const defaultSub = (dynAssignments.subtopics && dynAssignments.subtopics.length > 0) ? dynAssignments.subtopics[0].name : 'Arrays';
+
+        assignmentModalPool.push({
+          id: prob.id,
+          title: prob.title,
+          difficulty: prob.difficulty,
+          url: prob.url,
+          subtopic: defaultSub,
+          isCustom: false,
+          topicName: prob.topicName
+        });
+      }
+    }
+  } else {
+    const idx = assignmentModalPool.findIndex(item => item.id === probId);
+    if (idx !== -1) {
+      assignmentModalPool.splice(idx, 1);
+    }
+  }
+  renderSelectedAssignmentPool();
+};
+
+window.refreshModalCheckboxes = function() {
+  const checkboxes = document.querySelectorAll('input[name="assign-problem-checkbox"]');
+  checkboxes.forEach(cb => {
+    const probId = parseInt(cb.value);
+    cb.checked = assignmentModalPool.some(item => item.id === probId);
+  });
+};
+
+window.handleAddCustomQuestion = function() {
+  const idInput = document.getElementById('custom-leetcode-id');
+  const titleInput = document.getElementById('custom-leetcode-title');
+  const diffSelect = document.getElementById('custom-leetcode-difficulty');
+  const errorDiv = document.getElementById('custom-leetcode-error');
+
+  const id = parseInt(idInput.value);
+  const title = titleInput.value.trim();
+  const difficulty = diffSelect.value;
+
+  if (isNaN(id) || id <= 0) {
+    showCustomError("Please enter a valid LeetCode ID number.");
+    return;
+  }
+  if (!title) {
+    showCustomError("Please enter a LeetCode Question Title.");
+    return;
+  }
+
+  if (assignmentModalPool.some(item => item.id === id)) {
+    showCustomError(`Question #${id} is already in today's selection.`);
+    return;
+  }
+
+  if (errorDiv) errorDiv.style.display = 'none';
+
+  // Generate LeetCode slug
+  const titleSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const url = `https://leetcode.com/problems/${titleSlug}/`;
+
+  const dynAssignments = appState.allUsersProgress['dynamic_assignments'] || defaultAssignments;
+  const defaultSub = (dynAssignments.subtopics && dynAssignments.subtopics.length > 0) ? dynAssignments.subtopics[0].name : 'Arrays';
+
+  assignmentModalPool.push({
+    id: id,
+    title: title,
+    difficulty: difficulty,
+    url: url,
+    subtopic: defaultSub,
+    isCustom: true
+  });
+
+  idInput.value = '';
+  titleInput.value = '';
+
+  renderSelectedAssignmentPool();
+  showToast("Custom LeetCode question added!", "success");
+};
+
+function showCustomError(msg) {
+  const errorDiv = document.getElementById('custom-leetcode-error');
+  if (errorDiv) {
+    errorDiv.innerText = `⚠️ ${msg}`;
+    errorDiv.style.display = 'block';
+  }
+}
+
+window.renderSelectedAssignmentPool = function() {
+  const container = document.getElementById('selected-assignment-pool');
+  if (!container) return;
+
+  if (assignmentModalPool.length === 0) {
+    container.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.85rem; text-align: center; padding: 10px 0;">No questions selected yet.</p>';
+    return;
+  }
+
+  const dynAssignments = appState.allUsersProgress['dynamic_assignments'] || defaultAssignments;
+  const existingSubtopics = dynAssignments.subtopics.map(s => s.name);
+  if (!existingSubtopics.includes('Arrays')) {
+    existingSubtopics.push('Arrays');
+  }
+
+  let html = '';
+  assignmentModalPool.forEach((item, index) => {
+    html += `
+      <div class="selected-task-card" data-index="${index}">
+        <div class="selected-task-header">
+          <span class="selected-task-title">#${item.id} ${escapeHTML(item.title)}</span>
+          <button class="selected-task-remove-btn" onclick="removeQuestionFromPool(${index})">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="selected-task-subtopic-row">
+          <select class="subtopic-dropdown-select" onchange="handlePoolSubtopicChange(${index}, this.value)">
+    `;
+
+    existingSubtopics.forEach(subName => {
+      const selectedAttr = item.subtopic === subName ? 'selected' : '';
+      html += `<option value="${subName}" ${selectedAttr}>${escapeHTML(subName)}</option>`;
+    });
+
+    const isNewSelected = !existingSubtopics.includes(item.subtopic) && item.subtopic;
+    html += `
+            <option value="[NEW]" ${isNewSelected ? 'selected' : ''}>[Create New Subtopic...]</option>
+          </select>
+          <input type="text" class="new-subtopic-text-input" placeholder="New Subtopic Name" 
+            style="display: ${isNewSelected ? 'block' : 'none'};" 
+            value="${isNewSelected ? escapeHTML(item.subtopic) : ''}"
+            oninput="handlePoolNewSubtopicInput(${index}, this.value)">
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+};
+
+window.removeQuestionFromPool = function(index) {
+  assignmentModalPool.splice(index, 1);
+  renderSelectedAssignmentPool();
+  refreshModalCheckboxes();
+};
+
+window.handlePoolSubtopicChange = function(index, value) {
+  if (value === '[NEW]') {
+    assignmentModalPool[index].subtopic = ''; 
+    assignmentModalPool[index].isCreatingNewSubtopic = true;
+  } else {
+    assignmentModalPool[index].subtopic = value;
+    assignmentModalPool[index].isCreatingNewSubtopic = false;
+  }
+  renderSelectedAssignmentPool();
+};
+
+window.handlePoolNewSubtopicInput = function(index, value) {
+  assignmentModalPool[index].subtopic = value.trim();
+};
+
 async function saveAssignedTasks() {
-  const checkedBoxes = document.querySelectorAll('input[name="assign-problem-checkbox"]:checked');
   const warning = document.getElementById('assign-warning-msg');
 
-  if (checkedBoxes.length === 0 || checkedBoxes.length > 3) {
+  if (assignmentModalPool.length === 0 || assignmentModalPool.length > 3) {
     if (warning) warning.style.display = 'block';
     return;
   }
 
   if (warning) warning.style.display = 'none';
 
-  const selectedIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
   const todayStr = getLocalDateString();
+  const selectedIds = assignmentModalPool.map(item => item.id);
 
+  // Update daily tasks for today
   appState.dailyTasks[todayStr] = {
     assignedBy: appState.selectedUser,
     problems: selectedIds
   };
 
-  // Sync to database
+  const dynAssignments = appState.allUsersProgress['dynamic_assignments'] || { ...defaultAssignments };
+  if (!dynAssignments.subtopics) {
+    dynAssignments.subtopics = [];
+  }
+
+  // Populate dynamic assignments category
+  assignmentModalPool.forEach(item => {
+    const targetSubtopicName = item.subtopic || 'Arrays';
+    
+    let sub = dynAssignments.subtopics.find(s => s.name === targetSubtopicName);
+    if (!sub) {
+      sub = { name: targetSubtopicName, problems: [] };
+      dynAssignments.subtopics.push(sub);
+    }
+
+    const exists = sub.problems.some(p => p.id === item.id);
+    if (!exists) {
+      sub.problems.push({
+        id: item.id,
+        title: item.title,
+        difficulty: item.difficulty,
+        url: item.url
+      });
+    }
+  });
+
   const statusIndicator = document.getElementById('save-status-indicator');
   if (statusIndicator) {
     statusIndicator.className = 'save-status-indicator saving';
@@ -1995,7 +2400,25 @@ async function saveAssignedTasks() {
   }
 
   try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
+    const resAssignments = await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        id: 'dynamic_assignments',
+        data: dynAssignments
+      })
+    });
+
+    if (!resAssignments.ok) {
+      throw new Error(`Failed to save dynamic assignments: ${resAssignments.status}`);
+    }
+
+    const resTasks = await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
@@ -2009,24 +2432,28 @@ async function saveAssignedTasks() {
       })
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (!resTasks.ok) {
+      throw new Error(`Failed to save daily tasks: ${resTasks.status}`);
     }
 
-    // Update global state row
+    appState.allUsersProgress['dynamic_assignments'] = dynAssignments;
     appState.allUsersProgress['team_daily_tasks'] = appState.dailyTasks;
+
+    rebuildTopicsList();
 
     closeAssignTasksModal();
     renderDailyTasksWidget();
-    showToast("Daily team tasks assigned successfully! 🚀", "success");
+    renderTopicsList();
+    renderDashboard();
+    showToast("Daily team tasks saved successfully! 🚀", "success");
 
     if (statusIndicator) {
       statusIndicator.className = 'save-status-indicator saved';
       statusIndicator.querySelector('.status-text').innerText = 'Synced';
     }
   } catch (error) {
-    console.error("Failed to sync team tasks:", error);
-    showToast("Failed to sync team tasks with cloud.", "error");
+    console.error("Failed to sync assignments:", error);
+    showToast("Failed to sync assignments with cloud.", "error");
     if (statusIndicator) {
       statusIndicator.className = 'save-status-indicator error';
       statusIndicator.querySelector('.status-text').innerText = 'Offline';
@@ -2043,7 +2470,7 @@ function getDaysSinceBase(dateStr) {
   return Math.round(diffTime / (1000 * 60 * 60 * 24));
 }
 
-// Get assignee name for a given date
+// Get assignee name for a given date (Keep this rotation logic solely for automatic deadline assignments fallback)
 function getAssigneeForDate(dateStr) {
   const diffDays = getDaysSinceBase(dateStr);
   const roster = [
@@ -2059,7 +2486,6 @@ function getAssigneeForDate(dateStr) {
     'Vivek'
   ];
   
-  // Use absolute mod in case of date before base date
   const index = ((diffDays % roster.length) + roster.length) % roster.length;
   return roster[index];
 }
@@ -2103,12 +2529,10 @@ function getUnassignedProblems(count = 3) {
 async function checkAndAutoAssignTasks() {
   const todayStr = getLocalDateString();
   
-  // If tasks for today already exist, nothing to do
   if (appState.dailyTasks[todayStr]) {
     return;
   }
   
-  // If not assigned and passed 11:30 AM IST
   if (hasPassedISTDeadline()) {
     console.log("Auto-assign deadline (11:30 AM IST) passed. Automatically assigning tasks...");
     const autoProblems = getUnassignedProblems(3);
@@ -2119,7 +2543,46 @@ async function checkAndAutoAssignTasks() {
         problems: autoProblems
       };
       
+      const dynAssignments = appState.allUsersProgress['dynamic_assignments'] || { ...defaultAssignments };
+      if (!dynAssignments.subtopics) {
+        dynAssignments.subtopics = [];
+      }
+      
+      autoProblems.forEach(probId => {
+        const prob = findProblemById(probId);
+        if (prob) {
+          const targetSubtopicName = prob.topicName || 'Arrays';
+          let sub = dynAssignments.subtopics.find(s => s.name === targetSubtopicName);
+          if (!sub) {
+            sub = { name: targetSubtopicName, problems: [] };
+            dynAssignments.subtopics.push(sub);
+          }
+          if (!sub.problems.some(p => p.id === prob.id)) {
+            sub.problems.push({
+              id: prob.id,
+              title: prob.title,
+              difficulty: prob.difficulty,
+              url: prob.url
+            });
+          }
+        }
+      });
+
       try {
+        await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: JSON.stringify({
+            id: 'dynamic_assignments',
+            data: dynAssignments
+          })
+        });
+
         await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
           method: 'POST',
           headers: {
@@ -2133,7 +2596,11 @@ async function checkAndAutoAssignTasks() {
             data: appState.dailyTasks
           })
         });
+
+        appState.allUsersProgress['dynamic_assignments'] = dynAssignments;
         appState.allUsersProgress['team_daily_tasks'] = appState.dailyTasks;
+        
+        rebuildTopicsList();
         console.log("Auto-assigned tasks successfully synced to Supabase.");
       } catch (error) {
         console.error("Auto-assignment sync failed:", error);

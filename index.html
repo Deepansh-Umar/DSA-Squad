@@ -355,27 +355,58 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
-      <div class="modal-body">
-        <p class="modal-desc" style="margin-bottom: 16px;">
-          Select a coding pattern and choose 2-3 questions to assign as mandatory tasks for the team today.
-        </p>
-        
-        <div style="margin-bottom: 16px;">
-          <label for="assign-pattern-select" style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
-            1. Select Pattern / Topic
-          </label>
-          <select id="assign-pattern-select" class="select-filter" style="width: 100%; height: 48px; padding: 0 16px;">
-            <!-- Dynamically populated -->
-          </select>
+      <div class="modal-body" style="max-height: 480px; overflow-y: auto;">
+        <!-- Selection Source Toggles -->
+        <div style="display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+          <button class="btn" id="toggle-pick-sheet-btn" style="flex: 1; font-weight: 700; background: var(--border-color); border: 1px solid var(--primary); color: var(--text-primary);">📋 From Sheet</button>
+          <button class="btn" id="toggle-add-leetcode-btn" style="flex: 1; font-weight: 700; background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary);">🌐 From LeetCode</button>
         </div>
 
+        <!-- Option A: Pick from Sheet -->
+        <div id="section-pick-sheet">
+          <div style="margin-bottom: 12px;">
+            <label for="assign-pattern-select" style="display: block; font-weight: 700; font-size: 0.8rem; margin-bottom: 6px; color: var(--text-secondary); text-transform: uppercase;">
+              Select Pattern
+            </label>
+            <select id="assign-pattern-select" class="select-filter" style="width: 100%; height: 40px; padding: 0 12px;">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-weight: 700; font-size: 0.8rem; margin-bottom: 6px; color: var(--text-secondary); text-transform: uppercase;">
+              Select Question
+            </label>
+            <div id="assign-questions-list" class="assign-questions-list" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px; background: rgba(0, 0, 0, 0.15);">
+              <p style="color: var(--text-secondary); font-size: 0.85rem; text-align: center; padding: 10px 0;">Select a pattern first.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Option B: Add Custom LeetCode -->
+        <div id="section-add-leetcode" style="display: none; margin-bottom: 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; background: rgba(255, 255, 255, 0.02);">
+          <h4 style="font-size: 0.9rem; font-weight: 800; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; margin-top: 0;">🌐 Add Custom LeetCode Question</h4>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px; margin-bottom: 8px;">
+            <input type="number" id="custom-leetcode-id" placeholder="ID (e.g. 1)" class="select-filter" style="height: 38px; padding: 0 10px; font-size: 0.85rem;">
+            <input type="text" id="custom-leetcode-title" placeholder="Title (e.g. Two Sum)" class="select-filter" style="height: 38px; padding: 0 10px; font-size: 0.85rem;">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <select id="custom-leetcode-difficulty" class="select-filter" style="height: 38px; padding: 0 10px; font-size: 0.85rem;">
+              <option value="Easy">Easy</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+            <button class="btn btn-secondary" id="add-custom-question-btn" style="height: 38px; font-weight: 700; background: var(--primary); color: #07090e; border: none;">Add to Selection</button>
+          </div>
+          <div id="custom-leetcode-error" style="color: var(--hard-text); font-size: 0.75rem; font-weight: 600; display: none;"></div>
+        </div>
+
+        <!-- Section 3: Selected Questions for Today -->
         <div>
-          <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">
-            2. Select Questions (Max 3)
+          <label style="display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; border-top: 1px solid var(--border-color); padding-top: 12px;">
+            📋 Selected Questions & Subtopics
           </label>
-          <div id="assign-questions-list" class="assign-questions-list" style="max-height: 220px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; background: rgba(0, 0, 0, 0.15);">
-            <!-- Dynamically populated checkboxes -->
-            <p style="color: var(--text-secondary); font-size: 0.9rem; text-align: center; padding: 20px 0;">Select a topic first to see questions.</p>
+          <div id="selected-assignment-pool" style="display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto;">
+            <p style="color: var(--text-secondary); font-size: 0.85rem; text-align: center; padding: 10px 0;">No questions selected yet.</p>
           </div>
         </div>
         <div id="assign-warning-msg" style="color: var(--hard-text); font-size: 0.85rem; margin-top: 8px; font-weight: 600; display: none;">

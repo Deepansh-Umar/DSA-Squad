@@ -140,36 +140,6 @@
     ]
   },
   {
-    "id": 2,
-    "name": "Array",
-    "problems": [
-      {
-        "id": 56,
-        "title": "Merge Intervals",
-        "difficulty": "Medium",
-        "url": "https://leetcode.com/problems/merge-intervals/",
-        "completed": false,
-        "status": "NOT_STARTED"
-      },
-      {
-        "id": 53,
-        "title": "Maximum Subarray",
-        "difficulty": "Medium",
-        "url": "https://leetcode.com/problems/maximum-subarray/",
-        "completed": false,
-        "status": "NOT_STARTED"
-      },
-      {
-        "id": 88,
-        "title": "Merge Sorted Array",
-        "difficulty": "Easy",
-        "url": "https://leetcode.com/problems/merge-sorted-array/",
-        "completed": false,
-        "status": "NOT_STARTED"
-      }
-    ]
-  },
-  {
     "id": 3,
     "name": "Two Pointers",
     "problems": [
