@@ -246,8 +246,8 @@
         </button>
       </div>
       <div class="modal-body" style="max-height: 520px; overflow-y: auto;">
-        <!-- Supabase Cloud Config Section -->
-        <div class="config-section" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 18px;">
+        <!-- Supabase Cloud Config Section (Restricted to Sheet Owner) -->
+        <div class="config-section" id="cloud-db-config-section" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 18px; display: none;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
             <div style="font-size: 0.82rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 6px;">
               ⚡ Supabase Database Credentials
@@ -326,14 +326,38 @@
             <label for="login-username-input" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
               Username
             </label>
-            <input type="text" id="login-username-input" class="select-filter" placeholder="e.g. Deepansh" autocomplete="username" style="width: 100%; height: 42px; padding: 0 12px; font-size: 0.95rem;">
+            <input type="text" id="login-username-input" class="auth-input" placeholder="e.g. Deepansh" autocomplete="username">
           </div>
-          <div style="margin-bottom: 12px;">
+          <div style="margin-bottom: 4px;">
             <label for="login-password-input" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
               Password
             </label>
-            <input type="password" id="login-password-input" class="select-filter" placeholder="Enter password..." autocomplete="current-password" style="width: 100%; height: 42px; padding: 0 12px; font-size: 0.95rem;">
+            <input type="password" id="login-password-input" class="auth-input" placeholder="Enter password..." autocomplete="current-password">
           </div>
+
+          <!-- Reset / Change Password Toggle -->
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+            <button type="button" id="toggle-reset-pwd-btn" style="background: none; border: none; color: var(--primary); font-size: 0.75rem; cursor: pointer; text-decoration: underline; padding: 2px 0;">
+              Forgot / Set New Password?
+            </button>
+          </div>
+
+          <!-- Collapsible Reset Password Pane -->
+          <div id="reset-pwd-pane" style="display: none; background: rgba(255, 255, 255, 0.03); border: 1px dashed var(--primary); border-radius: var(--radius-md); padding: 12px; margin-bottom: 14px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--primary); margin-bottom: 8px;">
+              🔑 Set New Password
+            </div>
+            <div style="margin-bottom: 8px;">
+              <input type="password" id="reset-new-password-input" class="auth-input" placeholder="Enter new password..." style="height: 38px;">
+            </div>
+            <div style="margin-bottom: 10px;">
+              <input type="password" id="reset-confirm-password-input" class="auth-input" placeholder="Confirm new password..." style="height: 38px;">
+            </div>
+            <button class="btn btn-secondary" id="submit-reset-pwd-btn" style="width: 100%; height: 36px; font-weight: 700; font-size: 0.8rem; color: var(--primary); border-color: var(--primary);">
+              Update Password & Unlock
+            </button>
+          </div>
+
           <button class="btn btn-primary" id="submit-login-btn" style="width: 100%; height: 42px; font-weight: 800; justify-content: center; gap: 8px;">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
             Sign In to My Sheet
@@ -349,19 +373,19 @@
             <label for="signup-username-input" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
               Desired Username
             </label>
-            <input type="text" id="signup-username-input" class="select-filter" placeholder="e.g. Rahul, Priya, Alex" autocomplete="username" style="width: 100%; height: 42px; padding: 0 12px; font-size: 0.95rem;">
+            <input type="text" id="signup-username-input" class="auth-input" placeholder="e.g. Rahul, Priya, Alex" autocomplete="username">
           </div>
           <div style="margin-bottom: 10px;">
             <label for="signup-password-input" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
               Password
             </label>
-            <input type="password" id="signup-password-input" class="select-filter" placeholder="Create password..." autocomplete="new-password" style="width: 100%; height: 42px; padding: 0 12px; font-size: 0.95rem;">
+            <input type="password" id="signup-password-input" class="auth-input" placeholder="Create password..." autocomplete="new-password">
           </div>
           <div style="margin-bottom: 14px;">
             <label for="signup-confirm-input" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
               Confirm Password
             </label>
-            <input type="password" id="signup-confirm-input" class="select-filter" placeholder="Repeat password..." autocomplete="new-password" style="width: 100%; height: 42px; padding: 0 12px; font-size: 0.95rem;">
+            <input type="password" id="signup-confirm-input" class="auth-input" placeholder="Repeat password..." autocomplete="new-password">
           </div>
           <button class="btn btn-primary" id="submit-signup-btn" style="width: 100%; height: 42px; font-weight: 800; justify-content: center; gap: 8px;">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>

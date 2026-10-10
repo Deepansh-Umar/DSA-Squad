@@ -78,8 +78,9 @@ function refreshSupabaseCredentials() {
   SUPABASE_KEY = getSupabaseKey();
 }
 
-// Default Seed User (Deepansh)
-const DEFAULT_DEEPANSH_HASH = '009fa096988580b5e67bb933d287e2353bed7ca93fa97b405d57b9ec4b22045b'; // "deepansh123"
+// Default Seed User (Deepansh) - SHA-256 of "deepansh123"
+const DEFAULT_DEEPANSH_HASH = '8afec667167b0f36794fd233ef1b9b61c05f34365c7aa37bfa07d8681e59ced8';
+const LEGACY_DEEPANSH_HASH = '009fa096988580b5e67bb933d287e2353bed7ca93fa97b405d57b9ec4b22045b';
 
 // Helper to get all registered usernames
 function getRegisteredUsersList() {
@@ -222,12 +223,13 @@ function loadLocalUsers() {
     } catch (e) {}
   }
   if (!appState.users) appState.users = {};
-  if (!appState.users['deepansh']) {
+  if (!appState.users['deepansh'] || appState.users['deepansh'].passwordHash === LEGACY_DEEPANSH_HASH) {
     appState.users['deepansh'] = {
       username: 'Deepansh',
       passwordHash: DEFAULT_DEEPANSH_HASH,
       createdAt: '2026-08-20T00:00:00.000Z'
     };
+    localStorage.setItem('dsa_users', JSON.stringify(appState.users));
   }
 }
 
@@ -616,12 +618,12 @@ async function verifyPassword(username, enteredPassword) {
   const lower = username.toLowerCase();
   const hash = await sha256(enteredPassword);
   
+  if (lower === 'deepansh') {
+    if (hash === DEFAULT_DEEPANSH_HASH || hash === LEGACY_DEEPANSH_HASH) return true;
+  }
+
   if (appState.users && appState.users[lower]) {
     return hash === appState.users[lower].passwordHash;
-  }
-  
-  if (lower === 'deepansh') {
-    return hash === DEFAULT_DEEPANSH_HASH;
   }
   
   return false;
@@ -675,11 +677,68 @@ async function handleLoginSubmit() {
     showToast(`Welcome back, ${canonicalName}! Sheet unlocked.`, 'success');
   } else {
     if (errorMsg) {
-      errorMsg.innerText = "Incorrect username or password. Please try again.";
+      errorMsg.innerText = "Incorrect username or password. Please try again or click 'Forgot / Set New Password'.";
       errorMsg.style.display = 'block';
     }
     if (passInput) passInput.select();
   }
+}
+
+// Handle set / change password submit
+async function handleResetPasswordSubmit() {
+  const userInput = document.getElementById('login-username-input');
+  const newPassInput = document.getElementById('reset-new-password-input');
+  const confirmPassInput = document.getElementById('reset-confirm-password-input');
+  const errorMsg = document.getElementById('auth-error-msg');
+  const successMsg = document.getElementById('auth-success-msg');
+
+  if (errorMsg) errorMsg.style.display = 'none';
+  if (successMsg) successMsg.style.display = 'none';
+
+  let username = userInput ? userInput.value.trim() : '';
+  if (!username) username = appState.selectedUser || 'Deepansh';
+
+  const newPass = newPassInput ? newPassInput.value : '';
+  const confirmPass = confirmPassInput ? confirmPassInput.value : '';
+
+  if (!newPass || newPass.length < 4) {
+    showAuthError("New password must be at least 4 characters long.");
+    return;
+  }
+  if (newPass !== confirmPass) {
+    showAuthError("New passwords do not match.");
+    return;
+  }
+
+  const hash = await sha256(newPass);
+  const lower = username.toLowerCase();
+  if (!appState.users) appState.users = {};
+  if (!appState.users[lower]) {
+    appState.users[lower] = {
+      username: username,
+      createdAt: new Date().toISOString()
+    };
+  }
+  appState.users[lower].passwordHash = hash;
+
+  await saveUsersRegistry();
+
+  const userObj = appState.users[lower];
+  const canonicalName = userObj ? userObj.username : username;
+
+  localStorage.setItem(`dsa_auth_${canonicalName}`, 'true');
+  if (newPassInput) newPassInput.value = '';
+  if (confirmPassInput) confirmPassInput.value = '';
+  const passInput = document.getElementById('login-password-input');
+  if (passInput) passInput.value = '';
+
+  const resetPane = document.getElementById('reset-pwd-pane');
+  if (resetPane) resetPane.style.display = 'none';
+
+  closeLoginModal();
+  switchUser(canonicalName);
+  renderTopicsList();
+  showToast(`Password updated successfully for ${canonicalName}! Sheet unlocked. 🚀`, 'success');
 }
 
 // Handle new user signup submit
@@ -1307,6 +1366,34 @@ function setupEventListeners() {
   if (submitLoginBtn) submitLoginBtn.addEventListener('click', handleLoginSubmit);
   if (submitSignupBtn) submitSignupBtn.addEventListener('click', handleSignupSubmit);
 
+  // Set / Reset password toggle listeners
+  const toggleResetPwdBtn = document.getElementById('toggle-reset-pwd-btn');
+  const submitResetPwdBtn = document.getElementById('submit-reset-pwd-btn');
+  const resetConfirmPassInput = document.getElementById('reset-confirm-password-input');
+
+  if (toggleResetPwdBtn) {
+    toggleResetPwdBtn.addEventListener('click', () => {
+      const pane = document.getElementById('reset-pwd-pane');
+      if (pane) {
+        pane.style.display = pane.style.display === 'none' ? 'block' : 'none';
+        if (pane.style.display === 'block') {
+          const input = document.getElementById('reset-new-password-input');
+          if (input) input.focus();
+        }
+      }
+    });
+  }
+
+  if (submitResetPwdBtn) {
+    submitResetPwdBtn.addEventListener('click', handleResetPasswordSubmit);
+  }
+
+  if (resetConfirmPassInput) {
+    resetConfirmPassInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleResetPasswordSubmit();
+    });
+  }
+
   if (loginPasswordInput) {
     loginPasswordInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') handleLoginSubmit();
@@ -1485,6 +1572,14 @@ window.closeLoginModal = function() {
 function openModal() {
   const modalOverlay = document.getElementById('modal-overlay');
   const textarea = document.getElementById('json-textarea');
+  const dbSection = document.getElementById('cloud-db-config-section');
+  
+  // Cloud Database settings are strictly restricted to Deepansh (when signed in) or Admin
+  const isOwner = (appState.selectedUser && appState.selectedUser.toLowerCase() === 'deepansh' && checkAuth('Deepansh')) || appState.selectedUser === 'Admin';
+  if (dbSection) {
+    dbSection.style.display = isOwner ? 'block' : 'none';
+  }
+
   initDbConfigInputs();
   if (modalOverlay && textarea) {
     textarea.value = JSON.stringify(appState.progress, null, 2);
