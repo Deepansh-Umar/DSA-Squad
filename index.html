@@ -32,8 +32,8 @@
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="sidebar-brand">
-          <img src="https://raw.githubusercontent.com/Techy-prashant/images_workIITM/refs/heads/main/Form%20Headers%20(1).png" alt="DSA Squad Logo" class="brand-logo-img">
-          <span class="brand-text">DSA Squad</span>
+          <img src="logo.png" alt="DSA Tracker Logo" class="brand-logo-img">
+          <span class="brand-text">DSA Tracker</span>
         </div>
         <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Toggle Sidebar">
           <svg class="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -41,21 +41,17 @@
       </div>
       
       <div class="sidebar-menu">
-        <div class="menu-label">Team Members</div>
-        <ul class="user-list" id="sidebar-user-list">
-          <!-- Populated dynamically -->
-        </ul>
+        <!-- Active User Profile Card -->
+        <div class="sidebar-profile-card" id="sidebar-profile-card">
+          <!-- Populated dynamically via JS -->
+        </div>
 
         <div class="menu-divider"></div>
         
-        <div class="menu-label">Management</div>
-        <ul class="admin-menu">
-          <li class="admin-item" id="admin-page-btn">
-            <span class="avatar-circle admin-avatar">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>
-            </span>
-            <span class="menu-text">Admin Dashboard</span>
-          </li>
+        <!-- Topic Quick Navigator -->
+        <div class="menu-label">Topics Navigator</div>
+        <ul class="topic-nav-list" id="sidebar-topic-list">
+          <!-- Populated dynamically via JS -->
         </ul>
       </div>
     </aside>
@@ -66,23 +62,23 @@
         <!-- Header Section -->
         <header>
           <div class="header-meta">
-            <h1 id="header-user-title">DSA Squad Tracker</h1>
-            <p id="header-user-subtitle">Master coding interview patterns. Progress is saved automatically.</p>
+            <h1 id="header-user-title">DSA Tracker</h1>
+            <p id="header-user-subtitle">Master coding interview patterns. Progress is synced automatically.</p>
           </div>
           <div class="header-actions">
-            <!-- Edit Status Badge / Lock Status -->
+            <!-- Account / Auth Status Badge -->
             <div id="auth-status-container" class="auth-status-container">
               <!-- Rendered via JS -->
             </div>
             
             <!-- Save Status Indicator -->
-            <div class="save-status-indicator saved" id="save-status-indicator" title="Auto-saves to browser storage">
+            <div class="save-status-indicator saved" id="save-status-indicator" title="Auto-saves to browser storage & cloud">
               <span class="status-dot"></span>
               <span class="status-text">Saved</span>
             </div>
             <button class="btn" id="import-export-btn">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-              Sync / JSON
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              Cloud & Backup
             </button>
           </div>
         </header>
@@ -237,30 +233,59 @@
     </div>
   </div>
 
-  <!-- Import / Export Modal System Overlay -->
+  <!-- Cloud DB & Backup Modal System Overlay -->
   <div class="modal-overlay" id="modal-overlay">
-    <div class="modal">
+    <div class="modal" style="max-width: 540px;">
       <div class="modal-header">
         <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
-          Sync & Backup Progress
+          Cloud Database & Backup
         </h3>
         <button class="close-btn" id="close-modal-btn" aria-label="Close Modal">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
-      <div class="modal-body">
-        <div class="alert alert-info" style="margin-bottom: 20px; padding: 12px 16px; border-radius: var(--radius-md); background: rgba(249, 171, 54, 0.08); border: 1px solid rgba(249, 171, 54, 0.2); font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; display: flex; gap: 10px; align-items: flex-start;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
-          <div>
-            <strong style="color: var(--text-primary);">Cloud Sync Active:</strong> Your progress is automatically saved to the cloud whenever you change anything. You can open this page on any device or profile and it will load instantly!
+      <div class="modal-body" style="max-height: 520px; overflow-y: auto;">
+        <!-- Supabase Cloud Config Section -->
+        <div class="config-section" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 18px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <div style="font-size: 0.82rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+              ⚡ Supabase Database Credentials
+            </div>
+            <div id="db-connection-status" style="font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: rgba(16, 185, 129, 0.1); color: var(--easy-text); border: 1px solid rgba(16, 185, 129, 0.2);">
+              Ready
+            </div>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
+            <div>
+              <label for="cfg-supabase-url" style="display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
+                Supabase Project URL
+              </label>
+              <input type="text" id="cfg-supabase-url" class="select-filter" placeholder="https://xyzcompany.supabase.co" style="width: 100%; height: 38px; padding: 0 10px; font-size: 0.85rem;">
+            </div>
+            <div>
+              <label for="cfg-supabase-key" style="display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
+                Supabase Anon / Public Key
+              </label>
+              <input type="password" id="cfg-supabase-key" class="select-filter" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." style="width: 100%; height: 38px; padding: 0 10px; font-size: 0.85rem;">
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; justify-content: flex-end;">
+            <button class="btn btn-secondary" id="cfg-reset-db-btn" style="font-size: 0.75rem; padding: 6px 12px;">Reset to Code Defaults</button>
+            <button class="btn btn-primary" id="cfg-save-db-btn" style="font-size: 0.75rem; padding: 6px 14px;">Save & Test Connection</button>
+          </div>
+
+          <div style="margin-top: 10px; font-size: 0.73rem; color: var(--text-secondary); line-height: 1.4; border-top: 1px dashed var(--border-color); padding-top: 8px;">
+            💡 <em>Supabase table required:</em> <code>CREATE TABLE progress (id TEXT PRIMARY KEY, data JSONB);</code>
           </div>
         </div>
 
-        <p class="modal-desc">
-          For manual migration or backup, you can copy or paste your raw JSON progress below:
+        <p class="modal-desc" style="margin-bottom: 8px;">
+          <strong>Manual Backup & Migration:</strong> Export or import your full tracker state as JSON:
         </p>
-        <textarea id="json-textarea" class="text-area" placeholder='Paste your progress JSON here...' style="height: 150px;"></textarea>
+        <textarea id="json-textarea" class="text-area" placeholder='Paste your progress JSON here...' style="height: 120px;"></textarea>
       </div>
       <div class="modal-footer">
         <button class="btn btn-danger" id="reset-progress-btn" style="background: transparent; color: var(--hard-text); border-color: rgba(239, 68, 68, 0.25); font-weight: 700; margin-right: auto;">
@@ -273,33 +298,83 @@
     </div>
   </div>
 
-  <!-- Login Modal Overlay -->
+  <!-- Dynamic Login & Signup Modal Overlay -->
   <div class="modal-overlay" id="login-modal-overlay">
-    <div class="modal login-modal" style="max-width: 400px;">
+    <div class="modal login-modal" style="max-width: 420px;">
       <div class="modal-header">
-        <h3 class="modal-title" id="login-modal-title" style="display: flex; align-items: center; gap: 8px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-          Unlock Page
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          Account & Sheet
         </h3>
         <button class="close-btn" id="close-login-modal-btn" aria-label="Close Modal">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
       <div class="modal-body">
-        <p class="modal-desc" id="login-modal-desc">
-          Enter password to unlock editing.
-        </p>
-        <input type="password" id="login-password-input" class="text-area" placeholder="Enter password..." style="margin-top: 12px; height: 48px; font-size: 1rem; width: 100%;">
-        <div id="login-error-msg" style="color: var(--hard-text); font-size: 0.85rem; margin-top: 8px; font-weight: 600; display: none;">
-          Incorrect password. Please try again.
+        <!-- Auth Tabs: Login vs Register -->
+        <div class="auth-tabs" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+          <button class="btn auth-tab-btn active" id="tab-login-btn" style="flex: 1; font-weight: 700; border: 1px solid var(--primary); background: rgba(249, 171, 54, 0.1); color: var(--primary);">Sign In</button>
+          <button class="btn auth-tab-btn" id="tab-signup-btn" style="flex: 1; font-weight: 700; border: 1px solid var(--border-color); background: transparent; color: var(--text-secondary);">Create Account</button>
         </div>
+
+        <!-- Login Pane -->
+        <div id="login-pane">
+          <p class="modal-desc" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+            Sign in to your personal sheet to load your synced progress.
+          </p>
+          <div style="margin-bottom: 10px;">
+            <label for="login-username-input" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
+              Username
+            </label>
+            <input type="text" id="login-username-input" class="select-filter" placeholder="e.g. Deepansh" autocomplete="username" style="width: 100%; height: 42px; padding: 0 12px; font-size: 0.95rem;">
+          </div>
+          <div style="margin-bottom: 12px;">
+            <label for="login-password-input" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
+              Password
+            </label>
+            <input type="password" id="login-password-input" class="select-filter" placeholder="Enter password..." autocomplete="current-password" style="width: 100%; height: 42px; padding: 0 12px; font-size: 0.95rem;">
+          </div>
+          <button class="btn btn-primary" id="submit-login-btn" style="width: 100%; height: 42px; font-weight: 800; justify-content: center; gap: 8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+            Sign In to My Sheet
+          </button>
+        </div>
+
+        <!-- Signup Pane -->
+        <div id="signup-pane" style="display: none;">
+          <p class="modal-desc" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+            Create an account to get your own personal DSA sheet and dedicated cloud database row.
+          </p>
+          <div style="margin-bottom: 10px;">
+            <label for="signup-username-input" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
+              Desired Username
+            </label>
+            <input type="text" id="signup-username-input" class="select-filter" placeholder="e.g. Rahul, Priya, Alex" autocomplete="username" style="width: 100%; height: 42px; padding: 0 12px; font-size: 0.95rem;">
+          </div>
+          <div style="margin-bottom: 10px;">
+            <label for="signup-password-input" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
+              Password
+            </label>
+            <input type="password" id="signup-password-input" class="select-filter" placeholder="Create password..." autocomplete="new-password" style="width: 100%; height: 42px; padding: 0 12px; font-size: 0.95rem;">
+          </div>
+          <div style="margin-bottom: 14px;">
+            <label for="signup-confirm-input" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">
+              Confirm Password
+            </label>
+            <input type="password" id="signup-confirm-input" class="select-filter" placeholder="Repeat password..." autocomplete="new-password" style="width: 100%; height: 42px; padding: 0 12px; font-size: 0.95rem;">
+          </div>
+          <button class="btn btn-primary" id="submit-signup-btn" style="width: 100%; height: 42px; font-weight: 800; justify-content: center; gap: 8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+            Create Account & Start Sheet
+          </button>
+        </div>
+
+        <!-- Error & Status alerts -->
+        <div id="auth-error-msg" style="color: var(--hard-text); font-size: 0.85rem; margin-top: 12px; font-weight: 600; display: none;"></div>
+        <div id="auth-success-msg" style="color: var(--easy-text); font-size: 0.85rem; margin-top: 12px; font-weight: 600; display: none;"></div>
       </div>
       <div class="modal-footer">
-        <button class="btn" id="cancel-login-modal-btn" style="font-weight: 700;">Cancel</button>
-        <button class="btn btn-primary" id="submit-login-btn" style="font-weight: 700; display: flex; align-items: center; gap: 6px;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
-          Unlock
-        </button>
+        <button class="btn" id="cancel-login-modal-btn" style="font-weight: 700; width: 100%;">Close</button>
       </div>
     </div>
   </div>
@@ -422,6 +497,7 @@
 
   <!-- App Script Logic -->
   <script src="./questions.js"></script>
+  <script src="./config.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

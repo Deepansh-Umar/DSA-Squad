@@ -14,3 +14,12 @@
 # System files
 .DS_Store
 Thumbs.db
+
+# Database backups & sensitive files
+old_supabase_backup.json
+*.backup.json
+
+# Local configurations & secrets
+config.js
+.env
+.env.*

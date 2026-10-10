@@ -5,7 +5,8 @@ let appState = {
   topics: [], // Static list of topics and questions
   progress: {}, // Active user progress from LocalStorage/Supabase
   allUsersProgress: {}, // All members' progress fetched on load
-  selectedUser: 'Deepansh', // Current active page ('Deepansh', 'Bhumika', or 'Admin')
+  users: {}, // Registered users registry: { [usernameLower]: { username, passwordHash, createdAt } }
+  selectedUser: 'Deepansh', // Current active user page (defaults to Deepansh's data)
   sidebarCollapsed: false,
   theme: 'dark', // 'light' or 'dark'
   expandedTopics: new Set(), // Set of topic IDs currently expanded
@@ -36,37 +37,58 @@ const SVG_ICONS = {
   externalLink: `<svg class="link-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin='round'><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>`
 };
 
-// Supabase Configuration
-const SUPABASE_URL = "https://frcdaaystyoqriobaufo.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyY2RhYXlzdHlvcXJpb2JhdWZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczMjU3MzUsImV4cCI6MjEwMjkwMTczNX0.QFLYt6zNnKPFN_JR-CuXjhSRBnGCNdvPgEElU9_TRg4";
+// ============================================================================
+// Supabase Cloud Configuration
+// To connect your new Supabase project, replace the defaults below or enter
+// them directly in the UI under "Cloud & Backup" to test and save in your browser.
+// Table required in Supabase:
+//   CREATE TABLE progress (id TEXT PRIMARY KEY, data JSONB);
+// ============================================================================
+// Reads from gitignored config.js (or localStorage via Settings modal)
+const DEFAULT_SUPABASE_URL = (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG && SUPABASE_CONFIG.url) 
+  ? SUPABASE_CONFIG.url 
+  : "https://puosxmlqrcixlfceyase.supabase.co";
+const DEFAULT_SUPABASE_KEY = (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG && SUPABASE_CONFIG.anonKey) 
+  ? SUPABASE_CONFIG.anonKey 
+  : "";
 
-// Team Members List
-const USERS = [
-  'Deepansh',
-  'Bhumika',
-  'Nitish',
-  'Aditya',
-  'Aman',
-  'Prashant',
-  'Garima',
-  'Vivek',
-  'Vaibhav',
-  'Renuka'
-];
+function getSupabaseUrl() {
+  const custom = localStorage.getItem('dsa_supabase_url');
+  return (custom || DEFAULT_SUPABASE_URL).trim().replace(/\/+$/, '');
+}
 
-// Preconfigured SHA-256 password hashes (default: lowercase name + "123")
-const USER_PASSWORD_HASHES = {
-  'Deepansh': '009fa096988580b5e67bb933d287e2353bed7ca93fa97b405d57b9ec4b22045b',
-  'Bhumika': '87f1049efc48ddfddab5c05a5dd1d87f5a53e9f2174804573cc7bd77da75f97f',
-  'Nitish': '31ed8201a1eb920a75af66fcf2c47a8bd9c8ed9a0004b51ad12ce8e27de45ec2',
-  'Aditya': '5a9dad9cb3c47bc5fb18642ab08948f438ea97e4ab839bed7819daba242ba74c',
-  'Aman': '6190b76144de088a1dfffeb13fb916e0b8160ce5f5b5e11ea72a25dc5b0d0b85',
-  'Prashant': '433c70b884e08aa71fbd9d083425904ebbccd528bdd378444fe87bc8b1ecc8a8',
-  'Garima': '438569b625b26b5cdaad37377af8268702cebeac68d239c1dd58f622f82322a2',
-  'Vivek': '6e7c74d1860b2d9d957306330e85592437a5e5848641c2d7b53794470c4fea06',
-  'Vaibhav': '8448f3120b8e4ce66cd1330bb6afe0de74b7ac1716cdb31142fe9177c707621e',
-  'Renuka': '3343a678860be16eb56c68d8c3a40061e92d0ee60d48bcb50dbe1bd999f690ba'
-};
+function getSupabaseKey() {
+  const custom = localStorage.getItem('dsa_supabase_key');
+  return (custom || DEFAULT_SUPABASE_KEY).trim();
+}
+
+function isSupabaseConfigured() {
+  const url = getSupabaseUrl();
+  const key = getSupabaseKey();
+  return url && !url.includes('your-project') && key && !key.includes('your-anon-key');
+}
+
+// Active working credentials used across requests
+let SUPABASE_URL = getSupabaseUrl();
+let SUPABASE_KEY = getSupabaseKey();
+
+// Update working credentials in memory
+function refreshSupabaseCredentials() {
+  SUPABASE_URL = getSupabaseUrl();
+  SUPABASE_KEY = getSupabaseKey();
+}
+
+// Default Seed User (Deepansh)
+const DEFAULT_DEEPANSH_HASH = '009fa096988580b5e67bb933d287e2353bed7ca93fa97b405d57b9ec4b22045b'; // "deepansh123"
+
+// Helper to get all registered usernames
+function getRegisteredUsersList() {
+  const list = Object.values(appState.users || {}).map(u => u.username);
+  if (!list.some(name => name.toLowerCase() === 'deepansh')) {
+    list.unshift('Deepansh');
+  }
+  return list;
+}
 
 // Fetch helper with timeout safeguard
 async function fetchWithTimeout(resource, options = {}) {
@@ -90,6 +112,8 @@ async function fetchWithTimeout(resource, options = {}) {
 document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
   initSidebarState();
+  initDbConfigInputs();
+  loadLocalUsers();
   setupEventListeners();
   
   // Load local storage cache into state immediately for sub-10ms render
@@ -103,7 +127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await fetchQuestions(); // Load questions list first
   await loadAllUsersProgress(); // Load database records
   determineInitialUser(); // Navigate to requested user page
-  renderDailyTasksWidget(); // Render the team daily tasks panel
+  renderDailyTasksWidget(); // Render today's focus panel
 });
 
 // Setup Theme (Enforced Dark Mode)
@@ -148,13 +172,16 @@ function toggleSidebar() {
 function determineInitialUser() {
   const urlParams = new URLSearchParams(window.location.search);
   const userParam = urlParams.get('user');
+  const validUsers = getRegisteredUsersList();
   
-  if (userParam && (USERS.includes(userParam) || userParam === 'Admin')) {
-    switchUser(userParam, false);
+  if (userParam && (validUsers.some(u => u.toLowerCase() === userParam.toLowerCase()) || userParam === 'Admin')) {
+    const matched = validUsers.find(u => u.toLowerCase() === userParam.toLowerCase()) || userParam;
+    switchUser(matched, false);
   } else {
     const savedUser = localStorage.getItem('dsa_selected_user');
-    if (savedUser && (USERS.includes(savedUser) || savedUser === 'Admin')) {
-      switchUser(savedUser, false);
+    if (savedUser && (validUsers.some(u => u.toLowerCase() === savedUser.toLowerCase()) || savedUser === 'Admin')) {
+      const matched = validUsers.find(u => u.toLowerCase() === savedUser.toLowerCase()) || savedUser;
+      switchUser(matched, false);
     } else {
       switchUser('Deepansh', false);
     }
@@ -186,12 +213,162 @@ function getLocalDateString(date = new Date()) {
   return `${y}-${m}-${d}`;
 }
 
-// Load ALL users' progress from Supabase
+// Load local users registry from browser storage
+function loadLocalUsers() {
+  const cached = localStorage.getItem('dsa_users');
+  if (cached) {
+    try {
+      appState.users = JSON.parse(cached) || {};
+    } catch (e) {}
+  }
+  if (!appState.users) appState.users = {};
+  if (!appState.users['deepansh']) {
+    appState.users['deepansh'] = {
+      username: 'Deepansh',
+      passwordHash: DEFAULT_DEEPANSH_HASH,
+      createdAt: '2026-08-20T00:00:00.000Z'
+    };
+  }
+}
+
+// Persist users registry to local storage and Supabase
+async function saveUsersRegistry() {
+  localStorage.setItem('dsa_users', JSON.stringify(appState.users));
+  if (isSupabaseConfigured()) {
+    try {
+      await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/progress`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({
+          id: 'app_users',
+          data: appState.users
+        }),
+        timeout: 4000
+      });
+    } catch (err) {
+      console.warn("Could not sync app_users registry to Supabase:", err);
+    }
+  }
+}
+
+// Populate database credential inputs in modal
+function initDbConfigInputs() {
+  const urlInput = document.getElementById('cfg-supabase-url');
+  const keyInput = document.getElementById('cfg-supabase-key');
+  const statusEl = document.getElementById('db-connection-status');
+  
+  const savedUrl = localStorage.getItem('dsa_supabase_url');
+  const savedKey = localStorage.getItem('dsa_supabase_key');
+  
+  if (urlInput) urlInput.value = savedUrl || (DEFAULT_SUPABASE_URL.includes('your-project') ? '' : DEFAULT_SUPABASE_URL);
+  if (keyInput) keyInput.value = savedKey || (DEFAULT_SUPABASE_KEY.includes('your-anon-key') ? '' : DEFAULT_SUPABASE_KEY);
+  
+  if (statusEl) {
+    if (isSupabaseConfigured()) {
+      statusEl.innerText = "Configured";
+      statusEl.style.color = "var(--easy-text)";
+      statusEl.style.background = "rgba(16, 185, 129, 0.1)";
+    } else {
+      statusEl.innerText = "Local Storage Mode";
+      statusEl.style.color = "var(--text-muted)";
+      statusEl.style.background = "rgba(255, 255, 255, 0.05)";
+    }
+  }
+}
+
+// Save and test Supabase credentials from modal
+async function handleSaveDbConfig() {
+  const urlInput = document.getElementById('cfg-supabase-url');
+  const keyInput = document.getElementById('cfg-supabase-key');
+  const statusEl = document.getElementById('db-connection-status');
+  
+  const rawUrl = urlInput ? urlInput.value.trim().replace(/\/+$/, '') : '';
+  const rawKey = keyInput ? keyInput.value.trim() : '';
+  
+  if (!rawUrl || !rawKey) {
+    showToast("Please enter both Supabase URL and Anon Key.", "error");
+    return;
+  }
+  
+  if (statusEl) {
+    statusEl.innerText = "Testing...";
+    statusEl.style.color = "var(--attempted-text)";
+  }
+  
+  try {
+    const testRes = await fetchWithTimeout(`${rawUrl}/rest/v1/progress?select=id&limit=1`, {
+      method: 'GET',
+      headers: {
+        'apikey': rawKey,
+        'Authorization': `Bearer ${rawKey}`
+      },
+      timeout: 5000
+    });
+    
+    if (testRes.ok) {
+      localStorage.setItem('dsa_supabase_url', rawUrl);
+      localStorage.setItem('dsa_supabase_key', rawKey);
+      refreshSupabaseCredentials();
+      
+      if (statusEl) {
+        statusEl.innerText = "Connected ✅";
+        statusEl.style.color = "var(--easy-text)";
+        statusEl.style.background = "rgba(16, 185, 129, 0.15)";
+      }
+      showToast("Supabase connected! Syncing cloud data...", "success");
+      await loadAllUsersProgress();
+      renderSidebar();
+    } else {
+      throw new Error(`HTTP ${testRes.status}: ${testRes.statusText || 'Access Denied / Not Found'}`);
+    }
+  } catch (err) {
+    console.error("Supabase test connection failed:", err);
+    if (statusEl) {
+      statusEl.innerText = "Connection Failed ❌";
+      statusEl.style.color = "var(--hard-text)";
+      statusEl.style.background = "rgba(239, 68, 68, 0.15)";
+    }
+    showToast(`Connection failed: ${err.message || 'Network error'}. Check URL, key, or table.`, "error");
+  }
+}
+
+// Reset Supabase credentials to code defaults
+function handleResetDbConfig() {
+  localStorage.removeItem('dsa_supabase_url');
+  localStorage.removeItem('dsa_supabase_key');
+  refreshSupabaseCredentials();
+  initDbConfigInputs();
+  showToast("Supabase credentials reset to code defaults.", "success");
+}
+
+// Load users' progress from Supabase or LocalStorage
 async function loadAllUsersProgress() {
   const statusIndicator = document.getElementById('save-status-indicator');
   if (statusIndicator) {
     statusIndicator.className = 'save-status-indicator saving';
     statusIndicator.querySelector('.status-text').innerText = 'Syncing...';
+  }
+
+  if (!isSupabaseConfigured()) {
+    console.log("Supabase credentials not configured yet, using fast browser LocalStorage.");
+    const localAllProgress = localStorage.getItem('dsa_all_progress');
+    if (localAllProgress) {
+      try {
+        appState.allUsersProgress = JSON.parse(localAllProgress);
+      } catch (e) {}
+    }
+    appState.dailyTasks = appState.allUsersProgress['team_daily_tasks'] || {};
+    rebuildTopicsList();
+    if (statusIndicator) {
+      statusIndicator.className = 'save-status-indicator saved';
+      statusIndicator.querySelector('.status-text').innerText = 'Local Saved';
+    }
+    return;
   }
 
   try {
@@ -213,6 +390,12 @@ async function loadAllUsersProgress() {
     rows.forEach(row => {
       appState.allUsersProgress[row.id] = row.data || {};
     });
+
+    // Merge registered users from cloud
+    if (appState.allUsersProgress['app_users']) {
+      appState.users = { ...appState.users, ...appState.allUsersProgress['app_users'] };
+      localStorage.setItem('dsa_users', JSON.stringify(appState.users));
+    }
 
     // Extract daily tasks
     appState.dailyTasks = appState.allUsersProgress['team_daily_tasks'] || {};
@@ -251,7 +434,7 @@ async function loadAllUsersProgress() {
   }
 }
 
-// Migrate user_progress to progress_Deepansh if needed
+// Migrate legacy user_progress to progress_Deepansh if needed
 async function runDeepanshMigration() {
   const targetId = 'progress_Deepansh';
   const legacyId = 'user_progress';
@@ -261,21 +444,22 @@ async function runDeepanshMigration() {
     const data = appState.allUsersProgress[legacyId];
     appState.allUsersProgress[targetId] = data;
 
-    try {
-      await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/progress`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'resolution=merge-duplicates'
-        },
-        body: JSON.stringify({ id: targetId, data: data }),
-        timeout: 4000
-      });
-      showToast("Migrated existing tracker data to Deepansh's page", "success");
-    } catch (e) {
-      console.error("Migration failed:", e);
+    if (isSupabaseConfigured()) {
+      try {
+        await fetchWithTimeout(`${SUPABASE_URL}/rest/v1/progress`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates'
+          },
+          body: JSON.stringify({ id: targetId, data: data }),
+          timeout: 4000
+        });
+      } catch (e) {
+        console.error("Migration failed:", e);
+      }
     }
   }
 }
@@ -300,6 +484,14 @@ async function saveProgress() {
   if (statusIndicator) {
     statusIndicator.className = 'save-status-indicator saving';
     statusIndicator.querySelector('.status-text').innerText = 'Syncing...';
+  }
+
+  if (!isSupabaseConfigured()) {
+    if (statusIndicator) {
+      statusIndicator.className = 'save-status-indicator saved';
+      statusIndicator.querySelector('.status-text').innerText = 'Local Saved';
+    }
+    return;
   }
 
   try {
@@ -328,7 +520,6 @@ async function saveProgress() {
     }
   } catch (error) {
     console.error("Failed to sync progress to cloud:", error);
-    showToast("Failed to sync changes with cloud.", "error");
     if (statusIndicator) {
       statusIndicator.className = 'save-status-indicator error';
       statusIndicator.querySelector('.status-text').innerText = 'Offline';
@@ -336,7 +527,7 @@ async function saveProgress() {
   }
 }
 
-// Switch view between users or Admin
+// Switch view between users
 window.switchUser = function(username, updateUrl = true) {
   appState.selectedUser = username;
   localStorage.setItem('dsa_selected_user', username);
@@ -364,8 +555,8 @@ window.switchUser = function(username, updateUrl = true) {
     
     renderAdminDashboard();
   } else {
-    titleEl.innerText = `${username}'s DSA Tracker`;
-    subtitleEl.innerText = `Master coding interview patterns. Progress is synced automatically for ${username}.`;
+    titleEl.innerText = 'DSA Tracker';
+    subtitleEl.innerText = `Master coding interview patterns. Welcome, ${username}!`;
     
     document.getElementById('user-workspace-view').style.display = 'block';
     document.getElementById('admin-workspace-view').style.display = 'none';
@@ -403,59 +594,180 @@ function renderAuthWidget() {
   const isAuth = checkAuth(user);
   if (isAuth) {
     container.innerHTML = `
-      <div class="status-badge unlocked">
-        <span style="display: flex; align-items: center; gap: 6px;">${SVG_ICONS.unlock} Editing: <strong>${user}</strong></span>
-        <button class="unlock-action-btn" onclick="handleLogout()" style="background: transparent; color: var(--hard-text); border: 1px solid rgba(239, 68, 68, 0.25); padding: 4px 8px; border-radius: var(--radius-sm); margin-left: 8px;">Lock</button>
+      <div class="status-badge unlocked" style="display: flex; align-items: center; gap: 8px;">
+        <span style="display: flex; align-items: center; gap: 6px;">${SVG_ICONS.unlock} <strong>${escapeHTML(user)}</strong></span>
+        <button class="unlock-action-btn" onclick="openLoginModal('login')" style="background: transparent; color: var(--text-secondary); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: var(--radius-sm); margin-left: 4px;">Switch</button>
+        <button class="unlock-action-btn" onclick="handleLogout()" style="background: transparent; color: var(--hard-text); border: 1px solid rgba(239, 68, 68, 0.25); padding: 4px 8px; border-radius: var(--radius-sm);">Logout</button>
       </div>
     `;
   } else {
     container.innerHTML = `
-      <div class="status-badge locked">
-        <span style="display: flex; align-items: center; gap: 6px;">${SVG_ICONS.lock} Read-only</span>
-        <button class="unlock-action-btn" onclick="openLoginModal()">Login</button>
+      <div class="status-badge locked" style="display: flex; align-items: center; gap: 8px;">
+        <span style="display: flex; align-items: center; gap: 6px;">${SVG_ICONS.lock} Guest Mode</span>
+        <button class="unlock-action-btn" onclick="openLoginModal('login')">Sign In / Register</button>
       </div>
     `;
   }
 }
 
-// Handle login password submitting
+// Verify password against stored hash
+async function verifyPassword(username, enteredPassword) {
+  if (!username) return false;
+  const lower = username.toLowerCase();
+  const hash = await sha256(enteredPassword);
+  
+  if (appState.users && appState.users[lower]) {
+    return hash === appState.users[lower].passwordHash;
+  }
+  
+  if (lower === 'deepansh') {
+    return hash === DEFAULT_DEEPANSH_HASH;
+  }
+  
+  return false;
+}
+
+// Handle login submit
 async function handleLoginSubmit() {
-  const input = document.getElementById('login-password-input');
-  const errorMsg = document.getElementById('login-error-msg');
-  const password = input.value;
-  const user = appState.selectedUser;
+  const userInput = document.getElementById('login-username-input');
+  const passInput = document.getElementById('login-password-input');
+  const errorMsg = document.getElementById('auth-error-msg');
+  const successMsg = document.getElementById('auth-success-msg');
+  
+  if (errorMsg) errorMsg.style.display = 'none';
+  if (successMsg) successMsg.style.display = 'none';
 
-  if (!password) return;
+  let username = userInput ? userInput.value.trim() : '';
+  if (!username) {
+    username = appState.selectedUser || 'Deepansh';
+  }
+  const password = passInput ? passInput.value : '';
 
-  const isCorrect = await verifyPassword(user, password);
+  if (!password) {
+    if (errorMsg) {
+      errorMsg.innerText = "Please enter your password.";
+      errorMsg.style.display = 'block';
+    }
+    return;
+  }
+
+  const isCorrect = await verifyPassword(username, password);
   if (isCorrect) {
-    localStorage.setItem(`dsa_auth_${user}`, 'true');
-    input.value = '';
-    errorMsg.style.display = 'none';
-    closeLoginModal();
-    renderAuthWidget();
-    renderTopicsList(); // Re-render to enable checkboxes
-    showToast(`Page unlocked successfully for ${user}!`, 'success');
+    // Ensure user in registry
+    if (username.toLowerCase() === 'deepansh' && (!appState.users || !appState.users['deepansh'])) {
+      if (!appState.users) appState.users = {};
+      appState.users['deepansh'] = {
+        username: 'Deepansh',
+        passwordHash: DEFAULT_DEEPANSH_HASH,
+        createdAt: new Date().toISOString()
+      };
+      saveUsersRegistry();
+    }
     
-    // Trigger goal check after unlocking
-    setTimeout(checkAndPromptDailyGoal, 600);
+    const userObj = appState.users && appState.users[username.toLowerCase()];
+    const canonicalName = userObj ? userObj.username : username;
+    
+    localStorage.setItem(`dsa_auth_${canonicalName}`, 'true');
+    if (passInput) passInput.value = '';
+    closeLoginModal();
+    switchUser(canonicalName);
+    renderTopicsList();
+    showToast(`Welcome back, ${canonicalName}! Sheet unlocked.`, 'success');
   } else {
-    errorMsg.style.display = 'block';
-    input.select();
+    if (errorMsg) {
+      errorMsg.innerText = "Incorrect username or password. Please try again.";
+      errorMsg.style.display = 'block';
+    }
+    if (passInput) passInput.select();
   }
 }
 
-async function verifyPassword(username, enteredPassword) {
-  const hash = await sha256(enteredPassword);
-  return hash === USER_PASSWORD_HASHES[username];
+// Handle new user signup submit
+async function handleSignupSubmit() {
+  const userInput = document.getElementById('signup-username-input');
+  const passInput = document.getElementById('signup-password-input');
+  const confirmInput = document.getElementById('signup-confirm-input');
+  const errorMsg = document.getElementById('auth-error-msg');
+  const successMsg = document.getElementById('auth-success-msg');
+
+  if (errorMsg) errorMsg.style.display = 'none';
+  if (successMsg) successMsg.style.display = 'none';
+
+  const rawUsername = userInput ? userInput.value.trim() : '';
+  const password = passInput ? passInput.value : '';
+  const confirm = confirmInput ? confirmInput.value : '';
+
+  if (!rawUsername) {
+    showAuthError("Please choose a username.");
+    return;
+  }
+  if (!/^[a-zA-Z0-9_]{2,20}$/.test(rawUsername)) {
+    showAuthError("Username must be 2 to 20 alphanumeric characters or underscores.");
+    return;
+  }
+  if (rawUsername.toLowerCase() === 'admin') {
+    showAuthError("'Admin' cannot be registered as a regular username.");
+    return;
+  }
+  if (password.length < 4) {
+    showAuthError("Password must be at least 4 characters long.");
+    return;
+  }
+  if (password !== confirm) {
+    showAuthError("Passwords do not match.");
+    return;
+  }
+
+  const lowerName = rawUsername.toLowerCase();
+  if (appState.users && appState.users[lowerName]) {
+    showAuthError("That username is already taken. Please choose another.");
+    return;
+  }
+
+  const hash = await sha256(password);
+  if (!appState.users) appState.users = {};
+  appState.users[lowerName] = {
+    username: rawUsername,
+    passwordHash: hash,
+    createdAt: new Date().toISOString()
+  };
+
+  // Create initial empty sheet row
+  const targetId = `progress_${rawUsername}`;
+  if (!appState.allUsersProgress[targetId]) {
+    appState.allUsersProgress[targetId] = {};
+  }
+  localStorage.setItem(`dsa_progress_${rawUsername}`, JSON.stringify({}));
+  localStorage.setItem(`dsa_auth_${rawUsername}`, 'true');
+
+  await saveUsersRegistry();
+  await saveProgress();
+
+  if (userInput) userInput.value = '';
+  if (passInput) passInput.value = '';
+  if (confirmInput) confirmInput.value = '';
+
+  closeLoginModal();
+  switchUser(rawUsername);
+  renderTopicsList();
+  showToast(`Account created for ${rawUsername}! Your dedicated sheet is ready. 🚀`, 'success');
+}
+
+function showAuthError(msg) {
+  const errorMsg = document.getElementById('auth-error-msg');
+  if (errorMsg) {
+    errorMsg.innerText = msg;
+    errorMsg.style.display = 'block';
+  }
 }
 
 window.handleLogout = function() {
   const user = appState.selectedUser;
   localStorage.removeItem(`dsa_auth_${user}`);
   renderAuthWidget();
+  renderSidebar();
   renderTopicsList(); // Re-render to disable checkboxes
-  showToast(`Page locked. Read-only access restored for ${user}.`, 'success');
+  showToast(`Signed out from ${user}. Switched to read-only guest mode.`, 'success');
 };
 
 // Daily Goal popup logic
@@ -547,38 +859,88 @@ async function fetchQuestions() {
   }
 }
 
-// Render dynamic user list in sidebar
+// Render active profile widget and topic navigator in sidebar
 function renderSidebar() {
-  const container = document.getElementById('sidebar-user-list');
-  if (!container) return;
+  const profileContainer = document.getElementById('sidebar-profile-card');
+  const topicContainer = document.getElementById('sidebar-topic-list');
+  
+  const currentUser = appState.selectedUser || 'Deepansh';
+  const isAuth = checkAuth(currentUser);
+  const stats = getUserProgressStats(currentUser);
 
-  let html = '';
-  USERS.forEach(user => {
-    const stats = getUserProgressStats(user);
-    const activeClass = appState.selectedUser === user ? 'active' : '';
-    const initial = user.charAt(0);
-    
-    html += `
-      <li class="user-item ${activeClass}" onclick="switchUser('${user}')">
-        <div class="user-item-meta">
-          <span class="avatar-circle">${initial}</span>
-          <span class="menu-text">${user}</span>
+  if (profileContainer) {
+    const initial = currentUser.charAt(0).toUpperCase();
+    profileContainer.innerHTML = `
+      <div class="profile-meta">
+        <div class="profile-user-info">
+          <div class="profile-avatar">${initial}</div>
+          <div>
+            <div class="profile-name" title="${currentUser}">${escapeHTML(currentUser)}</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted);">${isAuth ? 'Editing Active' : 'Read-only / Guest'}</div>
+          </div>
         </div>
-        <div class="user-sidebar-stats">
-          ${stats.streak > 0 ? `<span class="user-sidebar-streak" title="Streak">${SVG_ICONS.flame} ${stats.streak}</span>` : ''}
-          <span class="user-sidebar-progress" title="Completion percentage">${stats.percentage}%</span>
+        ${stats.streak > 0 ? `<div class="profile-streak-pill">${SVG_ICONS.flame} ${stats.streak}d</div>` : ''}
+      </div>
+      
+      <div class="profile-progress-bar-wrap">
+        <div class="profile-progress-labels">
+          <span>Completion</span>
+          <span>${stats.solved}/${stats.total} (${stats.percentage}%)</span>
         </div>
-      </li>
+        <div class="profile-progress-bar">
+          <div class="profile-progress-fill" style="width: ${stats.percentage}%;"></div>
+        </div>
+      </div>
+
+      <div class="profile-actions">
+        ${isAuth ? `
+          <button class="profile-action-btn" onclick="openLoginModal('login')">Switch</button>
+          <button class="profile-action-btn" onclick="handleLogout()">Sign Out</button>
+        ` : `
+          <button class="profile-action-btn" onclick="openLoginModal('login')" style="color: var(--primary);">Sign In</button>
+          <button class="profile-action-btn" onclick="openLoginModal('signup')">Sign Up</button>
+        `}
+      </div>
     `;
-  });
-  container.innerHTML = html;
+  }
 
-  // Set active class on Admin Dashboard button
-  const adminBtn = document.getElementById('admin-page-btn');
-  if (adminBtn) {
-    adminBtn.className = `admin-item ${appState.selectedUser === 'Admin' ? 'active' : ''}`;
+  if (topicContainer) {
+    let topicHtml = '';
+    appState.topics.forEach(topic => {
+      let solvedCount = 0;
+      const totalProblems = topic.problems ? topic.problems.length : 0;
+      if (topic.problems) {
+        topic.problems.forEach(p => {
+          const prog = appState.progress[p.id];
+          if (prog && (prog.completed || prog.status === 'SOLVED' || prog.status === 'MASTERED')) {
+            solvedCount++;
+          }
+        });
+      }
+      const isComplete = totalProblems > 0 && solvedCount === totalProblems;
+
+      topicHtml += `
+        <li class="topic-nav-item" onclick="scrollToTopic('${topic.id}')" title="Jump to ${topic.name}">
+          <span class="topic-nav-name">${escapeHTML(topic.name)}</span>
+          <span class="topic-nav-count ${isComplete ? 'completed' : ''}">${solvedCount}/${totalProblems}</span>
+        </li>
+      `;
+    });
+    topicContainer.innerHTML = topicHtml;
   }
 }
+
+// Scroll to topic accordion section
+window.scrollToTopic = function(topicId) {
+  if (!appState.expandedTopics.has(topicId)) {
+    appState.expandedTopics.add(topicId);
+    renderTopicsList();
+  }
+  const el = document.getElementById(`topic-accordion-${topicId}`) || document.getElementById(`topic-${topicId}`) || document.getElementById(`topic-header-${topicId}`);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
 
 // Helper to compute progress statistics for a user in memory
 function getUserProgressStats(username) {
@@ -918,18 +1280,49 @@ function setupEventListeners() {
     });
   }
 
-  // Login Modal Event Listeners
+  // Cloud Database Config Button Listeners
+  const cfgSaveDbBtn = document.getElementById('cfg-save-db-btn');
+  const cfgResetDbBtn = document.getElementById('cfg-reset-db-btn');
+  if (cfgSaveDbBtn) cfgSaveDbBtn.addEventListener('click', handleSaveDbConfig);
+  if (cfgResetDbBtn) cfgResetDbBtn.addEventListener('click', handleResetDbConfig);
+
+  // Login / Signup Modal Event Listeners
   const closeLoginBtn = document.getElementById('close-login-modal-btn');
   const cancelLoginBtn = document.getElementById('cancel-login-modal-btn');
   const submitLoginBtn = document.getElementById('submit-login-btn');
+  const submitSignupBtn = document.getElementById('submit-signup-btn');
   const loginPasswordInput = document.getElementById('login-password-input');
+  const loginUsernameInput = document.getElementById('login-username-input');
+  const signupUsernameInput = document.getElementById('signup-username-input');
+  const signupPasswordInput = document.getElementById('signup-password-input');
+  const signupConfirmInput = document.getElementById('signup-confirm-input');
+  const tabLoginBtn = document.getElementById('tab-login-btn');
+  const tabSignupBtn = document.getElementById('tab-signup-btn');
+
+  if (tabLoginBtn) tabLoginBtn.addEventListener('click', () => switchAuthTab('login'));
+  if (tabSignupBtn) tabSignupBtn.addEventListener('click', () => switchAuthTab('signup'));
 
   if (closeLoginBtn) closeLoginBtn.addEventListener('click', closeLoginModal);
   if (cancelLoginBtn) cancelLoginBtn.addEventListener('click', closeLoginModal);
   if (submitLoginBtn) submitLoginBtn.addEventListener('click', handleLoginSubmit);
+  if (submitSignupBtn) submitSignupBtn.addEventListener('click', handleSignupSubmit);
+
   if (loginPasswordInput) {
     loginPasswordInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') handleLoginSubmit();
+    });
+  }
+  if (loginUsernameInput) {
+    loginUsernameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (loginPasswordInput) loginPasswordInput.focus();
+        else handleLoginSubmit();
+      }
+    });
+  }
+  if (signupConfirmInput) {
+    signupConfirmInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleSignupSubmit();
     });
   }
 
@@ -991,7 +1384,7 @@ function setupEventListeners() {
   const assignPatternSelect = document.getElementById('assign-pattern-select');
   const assignTasksModalOverlay = document.getElementById('assign-tasks-modal-overlay');
 
-  // New tab and custom add button selectors
+  // Tab and custom add button selectors
   const togglePickSheetBtn = document.getElementById('toggle-pick-sheet-btn');
   const toggleAddLeetcodeBtn = document.getElementById('toggle-add-leetcode-btn');
   const addCustomQuestionBtn = document.getElementById('add-custom-question-btn');
@@ -1015,21 +1408,71 @@ function setupEventListeners() {
   if (addCustomQuestionBtn) addCustomQuestionBtn.addEventListener('click', handleAddCustomQuestion);
 }
 
-// Open Login Modal
-window.openLoginModal = function() {
-  const modal = document.getElementById('login-modal-overlay');
-  const input = document.getElementById('login-password-input');
-  const errorMsg = document.getElementById('login-error-msg');
-  const title = document.getElementById('login-modal-title');
-  const desc = document.getElementById('login-modal-desc');
+// Switch between Login and Signup tabs in Auth Modal
+window.switchAuthTab = function(tab) {
+  const loginPane = document.getElementById('login-pane');
+  const signupPane = document.getElementById('signup-pane');
+  const tabLoginBtn = document.getElementById('tab-login-btn');
+  const tabSignupBtn = document.getElementById('tab-signup-btn');
+  const errorMsg = document.getElementById('auth-error-msg');
+  const successMsg = document.getElementById('auth-success-msg');
 
-  if (modal && input) {
-    title.innerText = "Unlock " + appState.selectedUser + "'s Page";
-    desc.innerText = "Enter the passcode for " + appState.selectedUser + " to grant write access.";
-    errorMsg.style.display = 'none';
-    input.value = '';
+  if (errorMsg) errorMsg.style.display = 'none';
+  if (successMsg) successMsg.style.display = 'none';
+
+  if (tab === 'signup') {
+    if (loginPane) loginPane.style.display = 'none';
+    if (signupPane) signupPane.style.display = 'block';
+    if (tabLoginBtn) {
+      tabLoginBtn.classList.remove('active');
+      tabLoginBtn.style.background = 'transparent';
+      tabLoginBtn.style.borderColor = 'var(--border-color)';
+      tabLoginBtn.style.color = 'var(--text-secondary)';
+    }
+    if (tabSignupBtn) {
+      tabSignupBtn.classList.add('active');
+      tabSignupBtn.style.background = 'rgba(249, 171, 54, 0.1)';
+      tabSignupBtn.style.borderColor = 'var(--primary)';
+      tabSignupBtn.style.color = 'var(--primary)';
+    }
+    const input = document.getElementById('signup-username-input');
+    if (input) setTimeout(() => input.focus(), 100);
+  } else {
+    if (loginPane) loginPane.style.display = 'block';
+    if (signupPane) signupPane.style.display = 'none';
+    if (tabLoginBtn) {
+      tabLoginBtn.classList.add('active');
+      tabLoginBtn.style.background = 'rgba(249, 171, 54, 0.1)';
+      tabLoginBtn.style.borderColor = 'var(--primary)';
+      tabLoginBtn.style.color = 'var(--primary)';
+    }
+    if (tabSignupBtn) {
+      tabSignupBtn.classList.remove('active');
+      tabSignupBtn.style.background = 'transparent';
+      tabSignupBtn.style.borderColor = 'var(--border-color)';
+      tabSignupBtn.style.color = 'var(--text-secondary)';
+    }
+    const input = document.getElementById('login-username-input');
+    if (input) setTimeout(() => input.focus(), 100);
+  }
+};
+
+// Open Login Modal
+window.openLoginModal = function(tab = 'login') {
+  const modal = document.getElementById('login-modal-overlay');
+  const userInput = document.getElementById('login-username-input');
+  const passInput = document.getElementById('login-password-input');
+  const errorMsg = document.getElementById('auth-error-msg');
+  const successMsg = document.getElementById('auth-success-msg');
+
+  if (modal) {
+    if (errorMsg) errorMsg.style.display = 'none';
+    if (successMsg) successMsg.style.display = 'none';
+    if (userInput) userInput.value = appState.selectedUser === 'Admin' ? '' : appState.selectedUser;
+    if (passInput) passInput.value = '';
+    
+    switchAuthTab(tab);
     modal.classList.add('active');
-    setTimeout(() => input.focus(), 150);
   }
 };
 
@@ -1042,6 +1485,7 @@ window.closeLoginModal = function() {
 function openModal() {
   const modalOverlay = document.getElementById('modal-overlay');
   const textarea = document.getElementById('json-textarea');
+  initDbConfigInputs();
   if (modalOverlay && textarea) {
     textarea.value = JSON.stringify(appState.progress, null, 2);
     modalOverlay.classList.add('active');
@@ -1520,7 +1964,8 @@ function renderAdminDashboard() {
   if (!container) return;
 
   // Process data for all users
-  const userStats = USERS.map(user => {
+  const registeredUsers = getRegisteredUsersList();
+  const userStats = registeredUsers.map(user => {
     const stats = getUserProgressStats(user);
     const progress = appState.allUsersProgress[`progress_${user}`] || {};
     
@@ -1556,7 +2001,7 @@ function renderAdminDashboard() {
 
   // Compile solved questions timeline
   const activityEvents = [];
-  USERS.forEach(user => {
+  registeredUsers.forEach(user => {
     const progress = appState.allUsersProgress[`progress_${user}`] || {};
     Object.keys(progress).forEach(probId => {
       if (isNaN(probId)) return;
@@ -1892,13 +2337,10 @@ function renderDailyTasksWidget() {
   const isAuth = checkAuth(appState.selectedUser);
   const dateFormatted = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-  // Only Deepansh has assignment powers
-  const isAssignee = appState.selectedUser === 'Deepansh';
-
   let html = `
     <div class="daily-tasks-widget">
       <div class="tasks-widget-header">
-        <h3 class="tasks-widget-title">🎯 Daily Team Tasks</h3>
+        <h3 class="tasks-widget-title">🎯 Today's Focus Problems</h3>
         <span class="tasks-widget-date">${dateFormatted}</span>
       </div>
   `;
@@ -1906,7 +2348,7 @@ function renderDailyTasksWidget() {
   if (todayTasks && todayTasks.problems && todayTasks.problems.length > 0) {
     html += `
       <div class="tasks-meta-info" style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px;">
-        <span>👥 Assigned by: <strong>${todayTasks.assignedBy}</strong></span>
+        <span style="font-size: 0.78rem; color: var(--text-muted);">✨ 3 Target problems for ${dateFormatted}</span>
       </div>
       <div class="tasks-list-stack">
     `;
@@ -1953,11 +2395,10 @@ function renderDailyTasksWidget() {
 
     html += `</div>`;
 
-    // Deepansh can edit the tasks even after assignment!
-    if (isAssignee && isAuth) {
+    if (isAuth) {
       html += `
         <button class="btn btn-secondary" onclick="openAssignTasksModal()" style="width: 100%; font-weight: 700; margin-top: 16px; border: 1px solid var(--primary); color: var(--primary);">
-          ✏️ Edit Today's Tasks
+          ✏️ Edit Today's Focus
         </button>
       `;
     }
@@ -1965,27 +2406,20 @@ function renderDailyTasksWidget() {
     // Empty state
     html += `
       <div class="assign-tasks-cta">
-        <p class="assign-tasks-cta-text" style="margin-bottom: 8px;">No tasks assigned by Deepansh for today yet.</p>
+        <p class="assign-tasks-cta-text" style="margin-bottom: 8px;">No target focus problems selected for today yet.</p>
     `;
 
-    if (isAssignee && isAuth) {
+    if (isAuth) {
       html += `
         <button class="btn btn-primary" onclick="openAssignTasksModal()" style="width: 100%; font-weight: 700;">
-          ➕ Assign Today's Tasks
+          ➕ Pick Today's Questions
         </button>
-      `;
-    } else if (isAssignee && !isAuth) {
-      html += `
-        <p class="assign-tasks-cta-text" style="font-size: 0.75rem; opacity: 0.7; font-style: italic;">
-          🔒 Unlock your page to assign today's tasks.
-        </p>
       `;
     } else {
       html += `
-        <p class="assign-tasks-cta-text" style="font-size: 0.75rem; opacity: 0.7; font-style: italic;">
-          Waiting for Deepansh to assign tasks.<br>
-          (Auto-assigns after 11:30 AM IST)
-        </p>
+        <button class="btn" onclick="openLoginModal('login')" style="width: 100%; font-weight: 700; font-size: 0.8rem; margin-top: 4px;">
+          🔑 Sign in to pick daily problems
+        </button>
       `;
     }
 
@@ -2413,6 +2847,25 @@ async function saveAssignedTasks() {
     statusIndicator.querySelector('.status-text').innerText = 'Syncing...';
   }
 
+  appState.allUsersProgress['dynamic_assignments'] = dynAssignments;
+  appState.allUsersProgress['team_daily_tasks'] = appState.dailyTasks;
+  localStorage.setItem('dsa_all_progress', JSON.stringify(appState.allUsersProgress));
+
+  rebuildTopicsList();
+  closeAssignTasksModal();
+  renderDailyTasksWidget();
+  renderTopicsList();
+  renderDashboard();
+  showToast("Focus problems saved successfully! 🚀", "success");
+
+  if (!isSupabaseConfigured()) {
+    if (statusIndicator) {
+      statusIndicator.className = 'save-status-indicator saved';
+      statusIndicator.querySelector('.status-text').innerText = 'Local Saved';
+    }
+    return;
+  }
+
   try {
     const resAssignments = await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
       method: 'POST',
@@ -2428,10 +2881,6 @@ async function saveAssignedTasks() {
       })
     });
 
-    if (!resAssignments.ok) {
-      throw new Error(`Failed to save dynamic assignments: ${resAssignments.status}`);
-    }
-
     const resTasks = await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
       method: 'POST',
       headers: {
@@ -2446,28 +2895,12 @@ async function saveAssignedTasks() {
       })
     });
 
-    if (!resTasks.ok) {
-      throw new Error(`Failed to save daily tasks: ${resTasks.status}`);
-    }
-
-    appState.allUsersProgress['dynamic_assignments'] = dynAssignments;
-    appState.allUsersProgress['team_daily_tasks'] = appState.dailyTasks;
-
-    rebuildTopicsList();
-
-    closeAssignTasksModal();
-    renderDailyTasksWidget();
-    renderTopicsList();
-    renderDashboard();
-    showToast("Daily team tasks saved successfully! 🚀", "success");
-
     if (statusIndicator) {
       statusIndicator.className = 'save-status-indicator saved';
       statusIndicator.querySelector('.status-text').innerText = 'Synced';
     }
   } catch (error) {
-    console.error("Failed to sync assignments:", error);
-    showToast("Failed to sync assignments with cloud.", "error");
+    console.error("Failed to sync assignments to cloud:", error);
     if (statusIndicator) {
       statusIndicator.className = 'save-status-indicator error';
       statusIndicator.querySelector('.status-text').innerText = 'Offline';
@@ -2484,24 +2917,9 @@ function getDaysSinceBase(dateStr) {
   return Math.round(diffTime / (1000 * 60 * 60 * 24));
 }
 
-// Get assignee name for a given date (Keep this rotation logic solely for automatic deadline assignments fallback)
+// Get label for daily focus problems
 function getAssigneeForDate(dateStr) {
-  const diffDays = getDaysSinceBase(dateStr);
-  const roster = [
-    'Aditya',
-    'Aman',
-    'Bhumika',
-    'Deepansh',
-    'Garima',
-    'Nitish',
-    'Prashant',
-    'Renuka',
-    'Vaibhav',
-    'Vivek'
-  ];
-  
-  const index = ((diffDays % roster.length) + roster.length) % roster.length;
-  return roster[index];
+  return "Daily Challenge";
 }
 
 // Check if current time has passed 11:30 AM IST
@@ -2582,42 +3000,45 @@ async function checkAndAutoAssignTasks() {
         }
       });
 
-      try {
-        await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
-          method: 'POST',
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'resolution=merge-duplicates'
-          },
-          body: JSON.stringify({
-            id: 'dynamic_assignments',
-            data: dynAssignments
-          })
-        });
+      appState.allUsersProgress['dynamic_assignments'] = dynAssignments;
+      appState.allUsersProgress['team_daily_tasks'] = appState.dailyTasks;
+      localStorage.setItem('dsa_all_progress', JSON.stringify(appState.allUsersProgress));
+      rebuildTopicsList();
 
-        await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
-          method: 'POST',
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'resolution=merge-duplicates'
-          },
-          body: JSON.stringify({
-            id: 'team_daily_tasks',
-            data: appState.dailyTasks
-          })
-        });
+      if (isSupabaseConfigured()) {
+        try {
+          await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${SUPABASE_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'resolution=merge-duplicates'
+            },
+            body: JSON.stringify({
+              id: 'dynamic_assignments',
+              data: dynAssignments
+            })
+          });
 
-        appState.allUsersProgress['dynamic_assignments'] = dynAssignments;
-        appState.allUsersProgress['team_daily_tasks'] = appState.dailyTasks;
-        
-        rebuildTopicsList();
-        console.log("Auto-assigned tasks successfully synced to Supabase.");
-      } catch (error) {
-        console.error("Auto-assignment sync failed:", error);
+          await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${SUPABASE_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'resolution=merge-duplicates'
+            },
+            body: JSON.stringify({
+              id: 'team_daily_tasks',
+              data: appState.dailyTasks
+            })
+          });
+
+          console.log("Auto-assigned tasks successfully synced to Supabase.");
+        } catch (error) {
+          console.error("Auto-assignment sync failed:", error);
+        }
       }
     }
   }
